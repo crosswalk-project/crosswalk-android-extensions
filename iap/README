@@ -1,0 +1,4 @@
+How to build the IAP extension with your application:
+
+  cd $(dirname $(which make_apk.py))
+  python make_apk.py --name=iap --package=org.xwalk.extensions.iap --permissions=iap --extensions="/<path-to-xwalk-android-extension>/out/Default/gen/iap/" --arch=x86 --manifest=/<path-to-xwalk-android-extension>/examples/iap/iap.json

@@ -12,6 +12,7 @@
       'target_name': 'build_all_android_extensions',
       'type': 'none',
       'dependencies': [
+        'iap/iap.gyp:*',
       ],
     },
   ],

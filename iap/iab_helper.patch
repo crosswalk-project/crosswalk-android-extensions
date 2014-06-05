@@ -1,0 +1,253 @@
+From 6328d7a4c34140947541393a983f675ef12509c1 Mon Sep 17 00:00:00 2001
+From: Deqing Huang <deqing.huang@intel.com>
+Date: Tue, 3 Jun 2014 14:06:27 +0800
+Subject: [PATCH] For xwalk extension
+
+---
+ .../example/android/trivialdrivesample/util/Base64.java   |    6 +++++-
+ .../trivialdrivesample/util/Base64DecoderException.java   |    6 +++++-
+ .../android/trivialdrivesample/util/IabException.java     |    8 ++++++--
+ .../android/trivialdrivesample/util/IabHelper.java        |    8 ++++++--
+ .../android/trivialdrivesample/util/IabResult.java        |    6 +++++-
+ .../android/trivialdrivesample/util/Inventory.java        |   13 +++++++++++--
+ .../example/android/trivialdrivesample/util/Purchase.java |    6 +++++-
+ .../example/android/trivialdrivesample/util/Security.java |    6 +++++-
+ .../android/trivialdrivesample/util/SkuDetails.java       |   11 ++++++++++-
+ 9 files changed, 58 insertions(+), 12 deletions(-)
+
+diff --git a/v3/src/com/example/android/trivialdrivesample/util/Base64.java b/v3/src/com/example/android/trivialdrivesample/util/Base64.java
+index fd35377..bd35191 100644
+--- a/v3/src/com/example/android/trivialdrivesample/util/Base64.java
++++ b/v3/src/com/example/android/trivialdrivesample/util/Base64.java
+@@ -1,3 +1,7 @@
++// Copyright (c) 2014 Intel Corporation. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
+ // Portions copyright 2002, Google, Inc.
+ //
+ // Licensed under the Apache License, Version 2.0 (the "License");
+@@ -12,7 +16,7 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
+ 
+-package com.example.android.trivialdrivesample.util;
++package org.xwalk.extensions.util;
+ 
+ // This code was converted from code at http://iharder.sourceforge.net/base64/
+ // Lots of extraneous features were removed.
+diff --git a/v3/src/com/example/android/trivialdrivesample/util/Base64DecoderException.java b/v3/src/com/example/android/trivialdrivesample/util/Base64DecoderException.java
+index d1c7d22..a6acc49 100644
+--- a/v3/src/com/example/android/trivialdrivesample/util/Base64DecoderException.java
++++ b/v3/src/com/example/android/trivialdrivesample/util/Base64DecoderException.java
+@@ -1,3 +1,7 @@
++// Copyright (c) 2014 Intel Corporation. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
+ // Copyright 2002, Google, Inc.
+ //
+ // Licensed under the Apache License, Version 2.0 (the "License");
+@@ -12,7 +16,7 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
+ 
+-package com.example.android.trivialdrivesample.util;
++package org.xwalk.extensions.util;
+ 
+ /**
+  * Exception thrown when encountering an invalid Base64 input character.
+diff --git a/v3/src/com/example/android/trivialdrivesample/util/IabException.java b/v3/src/com/example/android/trivialdrivesample/util/IabException.java
+index edf92f6..c9a7d02 100644
+--- a/v3/src/com/example/android/trivialdrivesample/util/IabException.java
++++ b/v3/src/com/example/android/trivialdrivesample/util/IabException.java
+@@ -1,3 +1,7 @@
++// Copyright (c) 2014 Intel Corporation. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
+ /* Copyright (c) 2012 Google Inc.
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+@@ -13,7 +17,7 @@
+  * limitations under the License.
+  */
+ 
+-package com.example.android.trivialdrivesample.util;
++package org.xwalk.extensions.util;
+ 
+ /**
+  * Exception thrown when something went wrong with in-app billing.
+@@ -40,4 +44,4 @@ public class IabException extends Exception {
+ 
+     /** Returns the IAB result (error) that this exception signals. */
+     public IabResult getResult() { return mResult; }
+-}
+\ No newline at end of file
++}
+diff --git a/v3/src/com/example/android/trivialdrivesample/util/IabHelper.java b/v3/src/com/example/android/trivialdrivesample/util/IabHelper.java
+index 69ecabd..6c11424 100644
+--- a/v3/src/com/example/android/trivialdrivesample/util/IabHelper.java
++++ b/v3/src/com/example/android/trivialdrivesample/util/IabHelper.java
+@@ -1,3 +1,7 @@
++// Copyright (c) 2014 Intel Corporation. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
+ /* Copyright (c) 2012 Google Inc.
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+@@ -13,7 +17,7 @@
+  * limitations under the License.
+  */
+ 
+-package com.example.android.trivialdrivesample.util;
++package org.xwalk.extensions.util;
+ 
+ import android.app.Activity;
+ import android.app.PendingIntent;
+@@ -823,7 +827,7 @@ public class IabHelper {
+         logDebug("Starting async operation: " + operation);
+     }
+ 
+-    void flagEndAsync() {
++    public void flagEndAsync() {
+         logDebug("Ending async operation: " + mAsyncOperation);
+         mAsyncOperation = "";
+         mAsyncInProgress = false;
+diff --git a/v3/src/com/example/android/trivialdrivesample/util/IabResult.java b/v3/src/com/example/android/trivialdrivesample/util/IabResult.java
+index abc33bf..ff175b9 100644
+--- a/v3/src/com/example/android/trivialdrivesample/util/IabResult.java
++++ b/v3/src/com/example/android/trivialdrivesample/util/IabResult.java
+@@ -1,3 +1,7 @@
++// Copyright (c) 2014 Intel Corporation. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
+ /* Copyright (c) 2012 Google Inc.
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+@@ -13,7 +17,7 @@
+  * limitations under the License.
+  */
+ 
+-package com.example.android.trivialdrivesample.util;
++package org.xwalk.extensions.util;
+ 
+ /**
+  * Represents the result of an in-app billing operation.
+diff --git a/v3/src/com/example/android/trivialdrivesample/util/Inventory.java b/v3/src/com/example/android/trivialdrivesample/util/Inventory.java
+index 70ebd61..773c557 100644
+--- a/v3/src/com/example/android/trivialdrivesample/util/Inventory.java
++++ b/v3/src/com/example/android/trivialdrivesample/util/Inventory.java
+@@ -1,3 +1,7 @@
++// Copyright (c) 2014 Intel Corporation. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
+ /* Copyright (c) 2012 Google Inc.
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+@@ -13,7 +17,7 @@
+  * limitations under the License.
+  */
+ 
+-package com.example.android.trivialdrivesample.util;
++package org.xwalk.extensions.util;
+ 
+ import java.util.ArrayList;
+ import java.util.HashMap;
+@@ -81,11 +85,16 @@ public class Inventory {
+         return new ArrayList<Purchase>(mPurchaseMap.values());
+     }
+ 
++    /** Returns a list of all products. */
++    public List<SkuDetails> getAllProducts() {
++        return new ArrayList<SkuDetails>(mSkuMap.values());
++    }
++
+     void addSkuDetails(SkuDetails d) {
+         mSkuMap.put(d.getSku(), d);
+     }
+ 
+-    void addPurchase(Purchase p) {
++    public void addPurchase(Purchase p) {
+         mPurchaseMap.put(p.getSku(), p);
+     }
+ }
+diff --git a/v3/src/com/example/android/trivialdrivesample/util/Purchase.java b/v3/src/com/example/android/trivialdrivesample/util/Purchase.java
+index 223cdb9..d82807d 100644
+--- a/v3/src/com/example/android/trivialdrivesample/util/Purchase.java
++++ b/v3/src/com/example/android/trivialdrivesample/util/Purchase.java
+@@ -1,3 +1,7 @@
++// Copyright (c) 2014 Intel Corporation. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
+ /* Copyright (c) 2012 Google Inc.
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+@@ -13,7 +17,7 @@
+  * limitations under the License.
+  */
+ 
+-package com.example.android.trivialdrivesample.util;
++package org.xwalk.extensions.util;
+ 
+ import org.json.JSONException;
+ import org.json.JSONObject;
+diff --git a/v3/src/com/example/android/trivialdrivesample/util/Security.java b/v3/src/com/example/android/trivialdrivesample/util/Security.java
+index 90f5327..713f46e 100644
+--- a/v3/src/com/example/android/trivialdrivesample/util/Security.java
++++ b/v3/src/com/example/android/trivialdrivesample/util/Security.java
+@@ -1,3 +1,7 @@
++// Copyright (c) 2014 Intel Corporation. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
+ /* Copyright (c) 2012 Google Inc.
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+@@ -13,7 +17,7 @@
+  * limitations under the License.
+  */
+ 
+-package com.example.android.trivialdrivesample.util;
++package org.xwalk.extensions.util;
+ 
+ import android.text.TextUtils;
+ import android.util.Log;
+diff --git a/v3/src/com/example/android/trivialdrivesample/util/SkuDetails.java b/v3/src/com/example/android/trivialdrivesample/util/SkuDetails.java
+index ec29344..cb38506 100644
+--- a/v3/src/com/example/android/trivialdrivesample/util/SkuDetails.java
++++ b/v3/src/com/example/android/trivialdrivesample/util/SkuDetails.java
+@@ -1,3 +1,7 @@
++// Copyright (c) 2014 Intel Corporation. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
+ /* Copyright (c) 2012 Google Inc.
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+@@ -13,7 +17,7 @@
+  * limitations under the License.
+  */
+ 
+-package com.example.android.trivialdrivesample.util;
++package org.xwalk.extensions.util;
+ 
+ import org.json.JSONException;
+ import org.json.JSONObject;
+@@ -55,4 +59,9 @@ public class SkuDetails {
+     public String toString() {
+         return "SkuDetails:" + mJson;
+     }
++
++    public JSONObject toJson() throws JSONException {
++        JSONObject jsonObj = new JSONObject(mJson);
++        return jsonObj;
++    }
+ }
+-- 
+1.7.10.4
+
