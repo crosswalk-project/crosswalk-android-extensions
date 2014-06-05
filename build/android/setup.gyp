@@ -1,51 +1,9 @@
+# Copyright (c) 2014 Intel Corporation. All rights reserved.
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 {
-  'conditions': [
-    ['component == "shared_library"', {
-      'targets': [
-        {
-          # These libraries from the Android ndk are required to be packaged with
-          # any APK that is built with them. build/java_apk.gypi expects any
-          # libraries that should be packaged with the apk to be in
-          # <(SHARED_LIB_DIR)
-          'target_name': 'copy_system_libraries',
-          'type': 'none',
-          'copies': [
-            {
-              'destination': '<(SHARED_LIB_DIR)/',
-              'files': [
-                '<(android_stlport_libs_dir)/libstlport_shared.so',
-              ],
-            },
-          ],
-        },
-      ],
-    }],
-  ],
   'targets': [
-    {
-      'target_name': 'get_build_device_configurations',
-      'type': 'none',
-      'actions': [
-        {
-          'action_name': 'get configurations',
-          'inputs': [
-            'gyp/util/build_device.py',
-            'gyp/get_device_configuration.py',
-          ],
-          'outputs': [
-            '<(build_device_config_path)',
-            '<(build_device_config_path).fake',
-          ],
-          'action': [
-            'python', 'gyp/get_device_configuration.py',
-            '--output=<(build_device_config_path)',
-          ],
-        }
-      ],
-    },
     {
       # Target for creating common output build directories. Creating output
       # dirs beforehand ensures that build scripts can assume these folders to

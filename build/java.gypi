@@ -1,3 +1,4 @@
+# Copyright (c) 2014 Intel Corporation. All rights reserved.
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -11,6 +12,21 @@
 #   'type': 'none',
 #   'variables': {
 #     'java_in_dir': 'path/to/package/root',
+#     'js_file': 'path/to/js/file',
+#     'json_file': 'path/to/json/file'
+#   },
+#   'includes': ['path/to/this/gypi/file'],
+# }
+#
+# or a gyp target with Java source file list:
+# {
+#   'target_name': 'my-package_java',
+#   'type': 'none',
+#   'variables': {
+#     'has_java_source_list': 1,
+#     'java_sources_list_input': ['<@(iap_gen_sources_list)'],
+#     'js_file': 'path/to/js/file',
+#     'json_file': 'path/to/json/file'
 #   },
 #   'includes': ['path/to/this/gypi/file'],
 # }
@@ -18,6 +34,11 @@
 # Required variables:
 #  java_in_dir - The top-level java directory. The src should be in
 #    <java_in_dir>/src.
+#  has_java_source_list - Indicates if explicitly providing java sources
+#  java_sources_list_input - A list of java source files.
+#  js_file - The name of js file for extension
+#  json_file - The name of json file descripting extension information.
+#
 # Optional/automatic variables:
 #  additional_input_paths - These paths will be included in the 'inputs' list to
 #    ensure that this target is rebuilt when one of these paths changes.
@@ -80,10 +101,12 @@
     'never_lint%': 0,
     'proguard_config%': '',
     'proguard_preprocess%': '0',
+    'has_java_source_list%': '0',
     'variables': {
       'variables': {
         'proguard_preprocess%': 0,
         'emma_never_instrument%': 0,
+        'has_java_source_list%': 0,
       },
       'conditions': [
         ['proguard_preprocess == 1', {
@@ -91,15 +114,15 @@
         }, {
           'javac_jar_path': '<(jar_path)'
         }],
-        ['chromium_code != 0 and emma_coverage != 0 and emma_never_instrument == 0', {
-          'emma_instrument': 1,
+        ['has_java_source_list == 1', {
+          'java_sources_list': ['<@(java_sources_list_input)']
         }, {
-          'emma_instrument': 0,
+          'java_sources_list': ['>!@(find >(java_in_dir)/src >(additional_src_dirs) -name "*.java")'],
         }],
       ],
     },
-    'emma_instrument': '<(emma_instrument)',
     'javac_jar_path': '<(javac_jar_path)',
+    'java_sources_list': '<(java_sources_list)',
   },
   # This all_dependent_settings is used for java targets only. This will add the
   # jar path to the classpath of dependent java targets.
@@ -150,28 +173,6 @@
           'additional_R_text_files': ['<(R_text_file)'],
         },
       },
-      'conditions': [
-        ['java_strings_grd != ""', {
-          'variables': {
-            'res_grit_dir': '<(intermediate_dir)/res_grit',
-            'res_input_dirs': ['<(res_grit_dir)'],
-            'grit_grd_file': '<(java_in_dir)/strings/<(java_strings_grd)',
-            'resource_input_paths': ['<!@pymod_do_main(grit_info <@(grit_defines) --outputs "<(res_grit_dir)" <(grit_grd_file))'],
-          },
-          'actions': [
-            {
-              'action_name': 'generate_localized_strings_xml',
-              'variables': {
-                'grit_additional_defines': ['-E', 'ANDROID_JAVA_TAGGED_ONLY=false'],
-                'grit_out_dir': '<(res_grit_dir)',
-                # resource_ids is unneeded since we don't generate .h headers.
-                'grit_resource_ids': '',
-              },
-              'includes': ['../build/grit_action.gypi'],
-            },
-          ],
-        }],
-      ],
       'actions': [
         # Generate R.java and crunch image resources.
         {
@@ -275,7 +276,7 @@
       'action_name': 'javac_<(_target_name)',
       'message': 'Compiling <(_target_name) java sources',
       'variables': {
-        'java_sources': ['>!@(find >(java_in_dir)/src >(additional_src_dirs) -name "*.java")'],
+        'java_sources': ['<@(java_sources_list)'],
       },
       'inputs': [
         '<(DEPTH)/build/android/gyp/util/build_utils.py',
@@ -293,28 +294,9 @@
         '--classpath=>(input_jars_paths)',
         '--src-gendirs=>(generated_src_dirs)',
         '--javac-includes=<(javac_includes)',
-        '--chromium-code=<(chromium_code)',
         '--stamp=<(compile_stamp)',
         '>@(java_sources)',
       ]
-    },
-    {
-      'variables': {
-        'src_dirs': [
-          '<(java_in_dir)/src',
-          '>@(additional_src_dirs)',
-        ],
-        'stamp_path': '<(lint_stamp)',
-        'result_path': '<(lint_result)',
-        'config_path': '<(lint_config)',
-      },
-      'inputs': [
-        '<(compile_stamp)',
-      ],
-      'outputs': [
-        '<(lint_stamp)',
-      ],
-      'includes': [ 'android/lint_action.gypi' ],
     },
     {
       'action_name': 'jar_<(_target_name)',
@@ -336,52 +318,23 @@
       ]
     },
     {
-      'action_name': 'instr_jar_<(_target_name)',
-      'message': 'Instrumenting <(_target_name) jar',
-      'variables': {
-        'input_path': '<(jar_path)',
-        'output_path': '<(jar_final_path)',
-        'stamp_path': '<(instr_stamp)',
-        'instr_type': 'jar',
-      },
-      'outputs': [
-        '<(jar_final_path)',
-      ],
+      'action_name': 'extension_<(_target_name)',
+      'message': 'Copying js and json of <(_target_name) to jar path',
       'inputs': [
-        '<(jar_path)',
-      ],
-      'includes': [ 'android/instr_action.gypi' ],
-    },
-    {
-      'action_name': 'jar_toc_<(_target_name)',
-      'message': 'Creating <(_target_name) jar.TOC',
-      'inputs': [
-        '<(DEPTH)/build/android/gyp/util/build_utils.py',
-        '<(DEPTH)/build/android/gyp/util/md5_check.py',
-        '<(DEPTH)/build/android/gyp/jar_toc.py',
-        '<(jar_final_path)',
+        '<(js_file)',
+        '<(json_file)',
+        '<(compile_stamp)',
       ],
       'outputs': [
-        '<(jar_final_path).TOC',
+        '<(intermediate_dir)/<(js_file)',
+        '<(intermediate_dir)/<(json_file)',
       ],
       'action': [
-        'python', '<(DEPTH)/build/android/gyp/jar_toc.py',
-        '--jar-path=<(jar_final_path)',
-        '--toc-path=<(jar_final_path).TOC',
+        'cp',
+        '<(js_file)',
+        '<(json_file)',
+        '<(intermediate_dir)',
       ]
-    },
-    {
-      'action_name': 'dex_<(_target_name)',
-      'variables': {
-        'conditions': [
-          ['emma_instrument != 0', {
-            'dex_no_locals': 1,
-          }],
-        ],
-        'dex_input_paths': [ '<(jar_final_path)' ],
-        'output_path': '<(dex_path)',
-      },
-      'includes': [ 'android/dex_action.gypi' ],
     },
   ],
 }
