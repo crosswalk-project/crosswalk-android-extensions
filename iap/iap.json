@@ -1,0 +1,5 @@
+{
+  "name":    "iap",
+  "class":   "org.xwalk.extensions.iap",
+  "jsapi":   "iap.js"
+}

@@ -1,0 +1,29 @@
+#!/bin/bash
+# Copyright (c) 2014 Intel Corporation. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+if [ ! `which gyp` ]; then
+  echo -e "\nPlease make sure gyp is in your PATH. It is usually found at CHROMIUM_SRC/tools/gyp."
+  exit 1
+fi
+
+if [ ! `which gclient` ]; then
+  echo -e "\nPlease make sure gclient is in your PATH. It is usually found at depot_tools dir."
+  exit 1
+fi
+
+
+if [ ! `which aidl` ]; then
+  echo -e "\nPlease make sure aidl is in your PATH."
+  echo -e "For example: ANDROID_SDK_PATH/build-tools/19.0.0/"
+  exit 1
+fi
+
+if [ ! `which make_apk.py` ]; then
+  echo -e "\nPlease make sure make_apk.py is in your PATH."
+  echo -e "It is usually found at xwalk unpacked_path"
+  exit 1
+fi
+
+gyp --depth=. android-extension.gyp
