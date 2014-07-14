@@ -78,7 +78,8 @@ def main():
                       'IInAppBillingService.aidl')
   shutil.copy(os.path.join('v3', 'src', '%s' % aidl),
               os.path.join(output_dir, aidl))
-  shutil.copy(os.path.join(root_dir, 'iap.java'), src_dir)
+  shutil.copy(os.path.join(root_dir, 'src', 'org', 'xwalk', 'extensions',
+                           'iap.java'), src_dir)
   return 0
 
 
