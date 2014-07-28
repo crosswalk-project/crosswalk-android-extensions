@@ -55,7 +55,7 @@
 
 <script>
 window.onload = function() {
-  if (typeof iap === 'undefined') {
+  if (typeof window.iap === 'undefined') {
     document.title = 'Fail';
     console.log("no IAP support");
     return;

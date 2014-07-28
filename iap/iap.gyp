@@ -69,7 +69,7 @@
           'inputs': [
             'ensure_iab_helper.py',
             'iab_helper.patch',
-            'iap.java',
+            'src/org/xwalk/extensions/iap.java',
             'IInAppBillingServiceInterface.aidl',
           ],
           'outputs': [
