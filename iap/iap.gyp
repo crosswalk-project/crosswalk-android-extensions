@@ -37,7 +37,7 @@
         'js_file': '<(DEPTH)/iap/iap.js',
         'json_file': '<(DEPTH)/iap/iap.json',
         'input_jars_paths': [
-          '<!(dirname $(which make_apk.py))/libs/xwalk_app_runtime_java.jar',
+          '<!(dirname $(which make_apk.py))/template/libs/xwalk_app_runtime_java.jar',
           '<(android_jar)',
         ],
       },
