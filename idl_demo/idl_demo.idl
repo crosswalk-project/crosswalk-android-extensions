@@ -1,0 +1,4 @@
+interface idl_demo {
+  void dummy();
+  void hi(DOMString words);
+};

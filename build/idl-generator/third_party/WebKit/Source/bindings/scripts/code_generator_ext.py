@@ -26,7 +26,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Generate Blink V8 bindings (.h and .cpp files).
+"""Generate Crosswalk Extension source files.
 
 If run itself, caches Jinja templates (and creates dummy file for build,
 since cache filenames are unpredictable and opaque).
@@ -72,12 +72,12 @@ import jinja2
 
 import idl_types
 from idl_types import IdlType
-import v8_callback_interface
-import v8_dictionary
-from v8_globals import includes, interfaces
-import v8_interface
-import v8_types
-from v8_utilities import capitalize, cpp_name, conditional_string, v8_class_name
+import ext_callback_interface
+import ext_dictionary
+from ext_globals import includes, interfaces
+import ext_interface
+import ext_types
+from ext_utilities import capitalize, cpp_name, conditional_string, ext_class_name
 
 
 KNOWN_COMPONENTS = frozenset(['core', 'modules'])
@@ -99,7 +99,7 @@ def render_template(interface_info, header_template, cpp_template,
 
 
 class CodeGeneratorBase(object):
-    """Base class for v8 bindings generator and IDL dictionary impl generator"""
+    """Base class for ext bindings generator and IDL dictionary impl generator"""
 
     def __init__(self, interfaces_info, cache_dir, output_dir):
         interfaces_info = interfaces_info or {}
@@ -132,12 +132,12 @@ class CodeGeneratorBase(object):
             interface_name
             for interface_name, interface_info in interfaces_info.iteritems()
             if 'WillBeGarbageCollected' in interface_info['inherited_extended_attributes']))
-        v8_types.set_component_dirs(dict(
+        ext_types.set_component_dirs(dict(
             (interface_name, interface_info['component_dir'])
             for interface_name, interface_info in interfaces_info.iteritems()))
 
     def generate_code(self, definitions, definition_name):
-        """Returns .h/.cpp code as ((path, content)...)."""
+        """Returns .js/.java code as ((path, content)...)."""
         # Set local type info
         IdlType.set_callback_functions(definitions.callback_functions.keys())
         IdlType.set_enums((enum.name, enum.values)
@@ -149,15 +149,14 @@ class CodeGeneratorBase(object):
         raise NotImplementedError()
 
 
-class CodeGeneratorV8(CodeGeneratorBase):
+class CodeGeneratorExt(CodeGeneratorBase):
     def __init__(self, interfaces_info, cache_dir, output_dir):
         CodeGeneratorBase.__init__(self, interfaces_info, cache_dir, output_dir)
 
     def output_paths(self, definition_name):
-        header_path = posixpath.join(self.output_dir,
-                                     'V8%s.h' % definition_name)
-        cpp_path = posixpath.join(self.output_dir, 'V8%s.cpp' % definition_name)
-        return header_path, cpp_path
+        js_path = posixpath.join(self.output_dir, '%s.js' % definition_name)
+        java_path = posixpath.join(self.output_dir, '%s.java' % definition_name)
+        return js_path, java_path
 
     def generate_code_internal(self, definitions, definition_name):
         if definition_name in definitions.interfaces:
@@ -176,34 +175,34 @@ class CodeGeneratorV8(CodeGeneratorBase):
 
         # Select appropriate Jinja template and contents function
         if interface.is_callback:
-            header_template_filename = 'callback_interface.h'
-            cpp_template_filename = 'callback_interface.cpp'
-            interface_context = v8_callback_interface.callback_interface_context
+            js_template_filename = 'callback_interface.js'
+            java_template_filename = 'callback_interface.java'
+            interface_context = ext_callback_interface.callback_interface_context
         else:
-            header_template_filename = 'interface.h'
-            cpp_template_filename = 'interface.cpp'
-            interface_context = v8_interface.interface_context
-        header_template = self.jinja_env.get_template(header_template_filename)
-        cpp_template = self.jinja_env.get_template(cpp_template_filename)
+            js_template_filename = 'interface.js'
+            java_template_filename = 'interface.java'
+            interface_context = ext_interface.interface_context
+        js_template = self.jinja_env.get_template(js_template_filename)
+        java_template = self.jinja_env.get_template(java_template_filename)
 
         interface_info = self.interfaces_info[interface_name]
 
         template_context = interface_context(interface)
         # Add the include for interface itself
         template_context['header_includes'].add(interface_info['include_path'])
-        header_text, cpp_text = render_template(
-            interface_info, header_template, cpp_template, template_context)
-        header_path, cpp_path = self.output_paths(interface_name)
+        js_text, java_text = render_template(
+            interface_info, js_template, java_template, template_context)
+        js_path, java_path = self.output_paths(interface_name)
         return (
-            (header_path, header_text),
-            (cpp_path, cpp_text),
+            (js_path, js_text),
+            (java_path, java_text),
         )
 
     def generate_dictionary_code(self, definitions, dictionary_name,
                                  dictionary):
-        header_template = self.jinja_env.get_template('dictionary_v8.h')
-        cpp_template = self.jinja_env.get_template('dictionary_v8.cpp')
-        template_context = v8_dictionary.dictionary_context(dictionary)
+        header_template = self.jinja_env.get_template('dictionary_ext.h')
+        cpp_template = self.jinja_env.get_template('dictionary_ext.cpp')
+        template_context = ext_dictionary.dictionary_context(dictionary)
         interface_info = self.interfaces_info[dictionary_name]
         # Add the include for interface itself
         template_context['header_includes'].add(interface_info['include_path'])
@@ -237,7 +236,7 @@ class CodeGeneratorDictionaryImpl(CodeGeneratorBase):
         interface_info = self.interfaces_info[definition_name]
         header_template = self.jinja_env.get_template('dictionary_impl.h')
         cpp_template = self.jinja_env.get_template('dictionary_impl.cpp')
-        template_context = v8_dictionary.dictionary_impl_context(
+        template_context = ext_dictionary.dictionary_impl_context(
             dictionary, self.interfaces_info)
         header_text, cpp_text = render_template(
             interface_info, header_template, cpp_template, template_context)

@@ -7,9 +7,9 @@ implementation classes that are used by blink's core/modules.
 """
 
 import operator
-from v8_globals import includes
-import v8_types
-import v8_utilities
+from ext_globals import includes
+import ext_types
+import ext_utilities
 
 
 DICTIONARY_H_INCLUDES = frozenset([
@@ -24,11 +24,11 @@ DICTIONARY_CPP_INCLUDES = frozenset([
 
 
 def setter_name_for_dictionary_member(member):
-    return 'set%s' % v8_utilities.capitalize(member.name)
+    return 'set%s' % ext_utilities.capitalize(member.name)
 
 
 def has_method_name_for_dictionary_member(member):
-    return 'has%s' % v8_utilities.capitalize(member.name)
+    return 'has%s' % ext_utilities.capitalize(member.name)
 
 
 # Context for V8 bindings
@@ -37,12 +37,12 @@ def dictionary_context(dictionary):
     includes.clear()
     includes.update(DICTIONARY_CPP_INCLUDES)
     return {
-        'cpp_class': v8_utilities.cpp_name(dictionary),
+        'cpp_class': ext_utilities.cpp_name(dictionary),
         'header_includes': set(DICTIONARY_H_INCLUDES),
         'members': [member_context(member)
                     for member in sorted(dictionary.members,
                                          key=operator.attrgetter('name'))],
-        'v8_class': v8_utilities.v8_class_name(dictionary),
+        'ext_class': ext_utilities.ext_class_name(dictionary),
     }
 
 
@@ -61,24 +61,24 @@ def member_context(member):
         if member.default_value.is_null:
             return None, 'v8::Null(isolate)'
         cpp_default_value = str(member.default_value)
-        v8_default_value = idl_type_for_default_value().cpp_value_to_v8_value(
+        ext_default_value = idl_type_for_default_value().cpp_value_to_ext_value(
             cpp_value=cpp_default_value, isolate='isolate',
             creation_context='creationContext')
-        return cpp_default_value, v8_default_value
+        return cpp_default_value, ext_default_value
 
-    cpp_default_value, v8_default_value = default_values()
+    cpp_default_value, ext_default_value = default_values()
 
     return {
         'cpp_default_value': cpp_default_value,
         'cpp_type': idl_type.cpp_type,
-        'cpp_value_to_v8_value': idl_type.cpp_value_to_v8_value(
+        'cpp_value_to_ext_value': idl_type.cpp_value_to_ext_value(
             cpp_value='impl->%s()' % member.name, isolate='isolate',
             creation_context='creationContext',
             extended_attributes=member.extended_attributes),
         'has_method_name': has_method_name_for_dictionary_member(member),
         'name': member.name,
         'setter_name': setter_name_for_dictionary_member(member),
-        'v8_default_value': v8_default_value,
+        'ext_default_value': ext_default_value,
     }
 
 
@@ -89,7 +89,7 @@ def dictionary_impl_context(dictionary, interfaces_info):
     header_includes = set(['platform/heap/Handle.h'])
     return {
         'header_includes': header_includes,
-        'cpp_class': v8_utilities.cpp_name(dictionary),
+        'cpp_class': ext_utilities.cpp_name(dictionary),
         'members': [member_impl_context(member, interfaces_info,
                                         header_includes)
                     for member in dictionary.members],
@@ -114,7 +114,7 @@ def member_impl_context(member, interfaces_info, header_includes):
     def member_cpp_type():
         member_cpp_type = idl_type.cpp_type_args(used_in_cpp_sequence=True)
         if idl_type.impl_should_use_nullable_container:
-            return v8_types.cpp_template_type('Nullable', member_cpp_type)
+            return ext_types.cpp_template_type('Nullable', member_cpp_type)
         return member_cpp_type
 
     cpp_default_value = None

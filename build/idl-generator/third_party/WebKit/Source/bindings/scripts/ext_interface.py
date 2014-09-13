@@ -40,13 +40,13 @@ import idl_definitions
 from idl_definitions import IdlOperation
 import idl_types
 from idl_types import IdlType, inherits_interface
-import v8_attributes
-from v8_globals import includes
-import v8_methods
-import v8_types
-from v8_types import cpp_ptr_type, cpp_template_type
-import v8_utilities
-from v8_utilities import (capitalize, conditional_string, cpp_name, gc_type,
+import ext_attributes
+from ext_globals import includes
+import ext_methods
+import ext_types
+from ext_types import cpp_ptr_type, cpp_template_type
+import ext_utilities
+from ext_utilities import (capitalize, conditional_string, cpp_name, gc_type,
                           has_extended_attribute_value, runtime_enabled_function_name,
                           extended_attribute_value_as_list)
 
@@ -79,7 +79,7 @@ def interface_context(interface):
 
     parent_interface = interface.parent
     if parent_interface:
-        header_includes.update(v8_types.includes_for_interface(parent_interface))
+        header_includes.update(ext_types.includes_for_interface(parent_interface))
     extended_attributes = interface.extended_attributes
 
     is_audio_buffer = inherits_interface(interface.name, 'AudioBuffer')
@@ -111,7 +111,7 @@ def interface_context(interface):
         iterator_operation.idl_type = IdlType('Iterator')
         iterator_operation.extended_attributes['RaisesException'] = None
         iterator_operation.extended_attributes['CallWith'] = 'ScriptState'
-        iterator_method = v8_methods.method_context(interface,
+        iterator_method = ext_methods.method_context(interface,
                                                     iterator_operation)
 
     # [MeasureAs]
@@ -134,7 +134,7 @@ def interface_context(interface):
         # Raw pointers faster though, and NodeFilter hacky anyway.
         'cpp_type': argument.idl_type.implemented_as + '*',
         'idl_type': argument.idl_type,
-        'v8_type': v8_types.v8_type(argument.idl_type.name),
+        'ext_type': ext_types.ext_type(argument.idl_type.name),
     } for argument in extended_attributes.get('SetWrapperReferenceTo', [])]
     for set_wrapper_reference_to in set_wrapper_reference_to_list:
         set_wrapper_reference_to['idl_type'].add_includes_for_type()
@@ -148,7 +148,7 @@ def interface_context(interface):
     else:
         special_wrap_for = []
     for special_wrap_interface in special_wrap_for:
-        v8_types.add_includes_for_interface(special_wrap_interface)
+        ext_types.add_includes_for_interface(special_wrap_interface)
 
     # [Custom=Wrap], [SetWrapperReferenceFrom]
     has_visit_dom_wrapper = (
@@ -189,7 +189,7 @@ def interface_context(interface):
                 is_active_dom_object or
                 is_dependent_lifetime)
             else 'Independent',
-        'measure_as': v8_utilities.measure_as(interface),  # [MeasureAs]
+        'measure_as': ext_utilities.measure_as(interface),  # [MeasureAs]
         'parent_interface': parent_interface,
         'pass_cpp_type': cpp_template_type(
             cpp_ptr_type('PassRefPtr', 'RawPtr', this_gc_type),
@@ -198,7 +198,7 @@ def interface_context(interface):
         'runtime_enabled_function': runtime_enabled_function_name(interface),  # [RuntimeEnabled]
         'set_wrapper_reference_to_list': set_wrapper_reference_to_list,
         'special_wrap_for': special_wrap_for,
-        'v8_class': v8_utilities.v8_class_name(interface),
+        'ext_class': ext_utilities.ext_class_name(interface),
         'wrapper_class_id': wrapper_class_id,
     }
 
@@ -258,7 +258,7 @@ def interface_context(interface):
     })
 
     # Attributes
-    attributes = [v8_attributes.attribute_context(interface, attribute)
+    attributes = [ext_attributes.attribute_context(interface, attribute)
                   for attribute in interface.attributes]
     context.update({
         'attributes': attributes,
@@ -276,7 +276,7 @@ def interface_context(interface):
     })
 
     # Methods
-    methods = [v8_methods.method_context(interface, method)
+    methods = [ext_methods.method_context(interface, method)
                for method in interface.operations
                if method.name]  # Skip anonymous special operations (methods)
     compute_method_overloads_context(methods)
@@ -292,7 +292,7 @@ def interface_context(interface):
             method.extended_attributes['ImplementedAs'] = stringifier.attribute.name
         elif stringifier.operation:
             method.extended_attributes['ImplementedAs'] = stringifier.operation.name
-        methods.append(v8_methods.method_context(interface, method))
+        methods.append(ext_methods.method_context(interface, method))
 
     conditionally_enabled_methods = []
     custom_registration_methods = []
@@ -464,7 +464,7 @@ def overloads_context(overloads):
         overload_extended_attributes = [
             method['custom_registration_extended_attributes']
             for method in overloads]
-        for extended_attribute in v8_methods.CUSTOM_REGISTRATION_EXTENDED_ATTRIBUTES:
+        for extended_attribute in ext_methods.CUSTOM_REGISTRATION_EXTENDED_ATTRIBUTES:
             if common_key(overload_extended_attributes, extended_attribute) is None:
                 raise ValueError('Overloads of %s have conflicting extended attribute %s'
                                  % (name, extended_attribute))
@@ -891,7 +891,7 @@ def sort_and_groupby(l, key=None):
 
 # [Constructor]
 def constructor_context(interface, constructor):
-    arguments_need_try_catch = any(v8_methods.argument_needs_try_catch(constructor, argument)
+    arguments_need_try_catch = any(ext_methods.argument_needs_try_catch(constructor, argument)
                                    for argument in constructor.arguments)
 
     # [RaisesException=Constructor]
@@ -899,19 +899,19 @@ def constructor_context(interface, constructor):
         interface.extended_attributes.get('RaisesException') == 'Constructor'
 
     return {
-        'arguments': [v8_methods.argument_context(interface, constructor, argument, index)
+        'arguments': [ext_methods.argument_context(interface, constructor, argument, index)
                       for index, argument in enumerate(constructor.arguments)],
         'arguments_need_try_catch': arguments_need_try_catch,
         'cpp_type': cpp_template_type(
             cpp_ptr_type('RefPtr', 'RawPtr', gc_type(interface)),
             cpp_name(interface)),
-        'cpp_value': v8_methods.cpp_value(
+        'cpp_value': ext_methods.cpp_value(
             interface, constructor, len(constructor.arguments)),
         'has_exception_state':
             is_constructor_raises_exception or
             any(argument for argument in constructor.arguments
                 if argument.idl_type.name == 'SerializedScriptValue' or
-                   argument.idl_type.v8_conversion_needs_exception_state),
+                   argument.idl_type.ext_conversion_needs_exception_state),
         'is_call_with_document':
             # [ConstructorCallWith=Document]
             has_extended_attribute_value(interface,
@@ -983,7 +983,7 @@ def property_getter(getter, cpp_arguments):
     extended_attributes = getter.extended_attributes
     is_raises_exception = 'RaisesException' in extended_attributes
 
-    # FIXME: make more generic, so can use v8_methods.cpp_value
+    # FIXME: make more generic, so can use ext_methods.cpp_value
     cpp_method_name = 'impl->%s' % cpp_name(getter)
 
     if is_raises_exception:
@@ -1011,7 +1011,7 @@ def property_getter(getter, cpp_arguments):
         'is_raises_exception': is_raises_exception,
         'name': cpp_name(getter),
         'union_arguments': union_arguments,
-        'v8_set_return_value': idl_type.v8_set_return_value('result', extended_attributes=extended_attributes, script_wrappable='impl', release=idl_type.release),
+        'ext_set_return_value': idl_type.ext_set_return_value('result', extended_attributes=extended_attributes, script_wrappable='impl', release=idl_type.release),
     }
 
 
@@ -1029,7 +1029,7 @@ def property_setter(setter):
                                idl_type.is_integer_type,
         'is_raises_exception': is_raises_exception,
         'name': cpp_name(setter),
-        'v8_value_to_local_cpp_value': idl_type.v8_value_to_local_cpp_value(
+        'ext_value_to_local_cpp_value': idl_type.ext_value_to_local_cpp_value(
             extended_attributes, 'v8Value', 'propertyValue'),
     }
 

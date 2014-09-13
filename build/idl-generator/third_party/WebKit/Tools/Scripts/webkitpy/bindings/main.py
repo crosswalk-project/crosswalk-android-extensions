@@ -43,7 +43,7 @@ import bindings.scripts.compute_interfaces_info_individual
 from bindings.scripts.compute_interfaces_info_individual import compute_info_individual, info_individual
 import bindings.scripts.compute_interfaces_info_overall
 from bindings.scripts.compute_interfaces_info_overall import compute_interfaces_info_overall, interfaces_info
-from bindings.scripts.idl_compiler import IdlCompilerDictionaryImpl, IdlCompilerV8
+from bindings.scripts.idl_compiler import IdlCompilerDictionaryImpl, IdlCompilerExt
 
 
 PASS_MESSAGE = 'All tests PASS!'
@@ -191,9 +191,9 @@ def bindings_tests(output_directory, verbose):
 
     try:
         generate_interface_dependencies()
-        idl_compiler = IdlCompilerV8(output_directory,
-                                     interfaces_info=interfaces_info,
-                                     only_if_changed=True)
+        idl_compiler = IdlCompilerExt(output_directory,
+                                      interfaces_info=interfaces_info,
+                                      only_if_changed=True)
         dictionary_impl_compiler = IdlCompilerDictionaryImpl(
             output_directory, interfaces_info=interfaces_info,
             only_if_changed=True)
@@ -243,3 +243,7 @@ def run_bindings_tests(reset_results, verbose):
         return bindings_tests(reference_directory, verbose)
     with TemporaryDirectory() as temp_dir:
         return bindings_tests(temp_dir, verbose)
+
+
+def generate_extension_sources(verbose):
+    return bindings_tests(reference_directory, verbose)

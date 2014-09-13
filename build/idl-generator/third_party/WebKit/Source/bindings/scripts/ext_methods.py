@@ -36,10 +36,10 @@ Design doc: http://www.chromium.org/developers/design-documents/idl-compiler
 
 from idl_definitions import IdlArgument
 from idl_types import IdlTypeBase, IdlUnionType, inherits_interface
-from v8_globals import includes
-import v8_types
-import v8_utilities
-from v8_utilities import has_extended_attribute_value
+from ext_globals import includes
+import ext_types
+import ext_utilities
+from ext_utilities import has_extended_attribute_value
 
 
 # Methods with any of these require custom method registration code in the
@@ -138,25 +138,26 @@ def method_context(interface, method):
             for argument in arguments))
 
     return {
-        'activity_logging_world_list': v8_utilities.activity_logging_world_list(method),  # [ActivityLogging]
+        'activity_logging_world_list': ext_utilities.activity_logging_world_list(method),  # [ActivityLogging]
         'arguments': [argument_context(interface, method, argument, index)
                       for index, argument in enumerate(arguments)],
+        'argument_list': ', '.join(arg.name for arg in arguments),
         'argument_declarations_for_private_script':
             argument_declarations_for_private_script(interface, method),
         'arguments_need_try_catch': arguments_need_try_catch,
-        'conditional_string': v8_utilities.conditional_string(method),
-        'cpp_type': (v8_types.cpp_template_type('Nullable', idl_type.cpp_type)
+        'conditional_string': ext_utilities.conditional_string(method),
+        'cpp_type': (ext_types.cpp_template_type('Nullable', idl_type.cpp_type)
                      if idl_type.is_explicit_nullable else idl_type.cpp_type),
         'cpp_value': this_cpp_value,
         'cpp_type_initializer': idl_type.cpp_type_initializer,
         'custom_registration_extended_attributes':
             CUSTOM_REGISTRATION_EXTENDED_ATTRIBUTES.intersection(
                 extended_attributes.iterkeys()),
-        'deprecate_as': v8_utilities.deprecate_as(method),  # [DeprecateAs]
-        'exposed_test': v8_utilities.exposed(method, interface),  # [Exposed]
+        'deprecate_as': ext_utilities.deprecate_as(method),  # [DeprecateAs]
+        'exposed_test': ext_utilities.exposed(method, interface),  # [Exposed]
         'function_template': function_template(),
         'has_custom_registration': is_static or
-            v8_utilities.has_extended_attribute(
+            ext_utilities.has_extended_attribute(
                 method, CUSTOM_REGISTRATION_EXTENDED_ATTRIBUTES),
         'has_exception_state':
             is_raises_exception or
@@ -164,7 +165,7 @@ def method_context(interface, method):
             is_check_security_for_window or
             any(argument for argument in arguments
                 if argument.idl_type.name == 'SerializedScriptValue' or
-                   argument.idl_type.v8_conversion_needs_exception_state),
+                   argument.idl_type.ext_conversion_needs_exception_state),
         'idl_type': idl_type.base_type,
         'is_call_with_execution_context': has_extended_attribute_value(method, 'CallWith', 'ExecutionContext'),
         'is_call_with_script_arguments': is_call_with_script_arguments,
@@ -185,7 +186,7 @@ def method_context(interface, method):
         'is_read_only': 'Unforgeable' in extended_attributes,
         'is_static': is_static,
         'is_variadic': arguments and arguments[-1].is_variadic,
-        'measure_as': v8_utilities.measure_as(method),  # [MeasureAs]
+        'measure_as': ext_utilities.measure_as(method),  # [MeasureAs]
         'name': name,
         'number_of_arguments': len(arguments),
         'number_of_required_arguments': len([
@@ -195,17 +196,17 @@ def method_context(interface, method):
             argument for argument in arguments
             if not argument.is_optional]),
         'only_exposed_to_private_script': is_only_exposed_to_private_script,
-        'per_context_enabled_function': v8_utilities.per_context_enabled_function_name(method),  # [PerContextEnabled]
-        'private_script_v8_value_to_local_cpp_value': idl_type.v8_value_to_local_cpp_value(
+        'per_context_enabled_function': ext_utilities.per_context_enabled_function_name(method),  # [PerContextEnabled]
+        'private_script_ext_value_to_local_cpp_value': idl_type.ext_value_to_local_cpp_value(
             extended_attributes, 'v8Value', 'cppValue', isolate='scriptState->isolate()', used_in_private_script=True),
         'property_attributes': property_attributes(method),
-        'runtime_enabled_function': v8_utilities.runtime_enabled_function_name(method),  # [RuntimeEnabled]
+        'runtime_enabled_function': ext_utilities.runtime_enabled_function_name(method),  # [RuntimeEnabled]
         'should_be_exposed_to_script': not (is_implemented_in_private_script and is_only_exposed_to_private_script),
         'signature': 'v8::Local<v8::Signature>()' if is_static or 'DoNotCheckSignature' in extended_attributes else 'defaultSignature',
         'union_arguments': idl_type.union_arguments,
         'use_local_result': use_local_result(method),
-        'v8_set_return_value': v8_set_return_value(interface.name, method, this_cpp_value),
-        'v8_set_return_value_for_main_world': v8_set_return_value(interface.name, method, this_cpp_value, for_main_world=True),
+        'ext_set_return_value': ext_set_return_value(interface.name, method, this_cpp_value),
+        'ext_set_return_value_for_main_world': ext_set_return_value(interface.name, method, this_cpp_value, for_main_world=True),
         'world_suffixes': ['', 'ForMainWorld'] if 'PerWorldBindings' in extended_attributes else [''],  # [PerWorldBindings],
     }
 
@@ -254,13 +255,13 @@ def argument_context(interface, method, argument, index):
         'is_variadic_wrapper_type': is_variadic_wrapper_type,
         'is_wrapper_type': idl_type.is_wrapper_type,
         'name': argument.name,
-        'private_script_cpp_value_to_v8_value': idl_type.cpp_value_to_v8_value(
+        'private_script_cpp_value_to_ext_value': idl_type.cpp_value_to_ext_value(
             argument.name, isolate='scriptState->isolate()',
             creation_context='scriptState->context()->Global()'),
-        'v8_set_return_value': v8_set_return_value(interface.name, method, this_cpp_value),
-        'v8_set_return_value_for_main_world': v8_set_return_value(interface.name, method, this_cpp_value, for_main_world=True),
-        'v8_value_to_local_cpp_value': v8_value_to_local_cpp_value(argument, index, return_promise=return_promise),
-        'vector_type': v8_types.cpp_ptr_type('Vector', 'HeapVector', idl_type.gc_type),
+        'ext_set_return_value': ext_set_return_value(interface.name, method, this_cpp_value),
+        'ext_set_return_value_for_main_world': ext_set_return_value(interface.name, method, this_cpp_value, for_main_world=True),
+        'ext_value_to_local_cpp_value': ext_value_to_local_cpp_value(argument, index, return_promise=return_promise),
+        'vector_type': ext_types.cpp_ptr_type('Vector', 'HeapVector', idl_type.gc_type),
     }
 
 
@@ -301,7 +302,7 @@ def cpp_value(interface, method, number_of_arguments):
         call_with_values = interface.extended_attributes.get('ConstructorCallWith')
     else:
         call_with_values = method.extended_attributes.get('CallWith')
-    cpp_arguments.extend(v8_utilities.call_with_arguments(call_with_values))
+    cpp_arguments.extend(ext_utilities.call_with_arguments(call_with_values))
 
     # Members of IDL partial interface definitions are implemented in C++ as
     # static member functions, which for instance members (non-static members)
@@ -332,13 +333,13 @@ def cpp_value(interface, method, number_of_arguments):
     elif 'ImplementedInPrivateScript' in method.extended_attributes:
         base_name = '%sMethod' % method.name
     else:
-        base_name = v8_utilities.cpp_name(method)
+        base_name = ext_utilities.cpp_name(method)
 
-    cpp_method_name = v8_utilities.scoped_name(interface, method, base_name)
+    cpp_method_name = ext_utilities.scoped_name(interface, method, base_name)
     return '%s(%s)' % (cpp_method_name, ', '.join(cpp_arguments))
 
 
-def v8_set_return_value(interface_name, method, cpp_value, for_main_world=False):
+def ext_set_return_value(interface_name, method, cpp_value, for_main_world=False):
     idl_type = method.idl_type
     extended_attributes = method.extended_attributes
     if not idl_type or idl_type.name == 'void':
@@ -361,10 +362,10 @@ def v8_set_return_value(interface_name, method, cpp_value, for_main_world=False)
         release = idl_type.release
 
     script_wrappable = 'impl' if inherits_interface(interface_name, 'Node') else ''
-    return idl_type.v8_set_return_value(cpp_value, extended_attributes, script_wrappable=script_wrappable, release=release, for_main_world=for_main_world)
+    return idl_type.ext_set_return_value(cpp_value, extended_attributes, script_wrappable=script_wrappable, release=release, for_main_world=for_main_world)
 
 
-def v8_value_to_local_cpp_variadic_value(argument, index, return_promise):
+def ext_value_to_local_cpp_variadic_value(argument, index, return_promise):
     assert argument.is_variadic
     idl_type = argument.idl_type
 
@@ -385,13 +386,13 @@ def v8_value_to_local_cpp_variadic_value(argument, index, return_promise):
     return '%s%s(%s)' % (macro, suffix, ', '.join(macro_args))
 
 
-def v8_value_to_local_cpp_value(argument, index, return_promise=False):
+def ext_value_to_local_cpp_value(argument, index, return_promise=False):
     extended_attributes = argument.extended_attributes
     idl_type = argument.idl_type
     name = argument.name
     if argument.is_variadic:
-        return v8_value_to_local_cpp_variadic_value(argument, index, return_promise)
-    return idl_type.v8_value_to_local_cpp_value(extended_attributes, 'info[%s]' % index,
+        return ext_value_to_local_cpp_variadic_value(argument, index, return_promise)
+    return idl_type.ext_value_to_local_cpp_value(extended_attributes, 'info[%s]' % index,
                                                 name, index=index, declare_variable=False, return_promise=return_promise)
 
 
@@ -420,7 +421,7 @@ def union_member_argument_context(idl_type, index):
     cpp_return_value = this_cpp_value
 
     if not idl_type.cpp_type_has_null_value:
-        this_cpp_type = v8_types.cpp_template_type('Nullable', this_cpp_type)
+        this_cpp_type = ext_types.cpp_template_type('Nullable', this_cpp_type)
         this_cpp_type_initializer = ''
         cpp_return_value = '%s.get()' % this_cpp_value
 
@@ -434,7 +435,7 @@ def union_member_argument_context(idl_type, index):
         'cpp_type_initializer': this_cpp_type_initializer,
         'cpp_value': this_cpp_value,
         'null_check_value': null_check_value,
-        'v8_set_return_value': idl_type.v8_set_return_value(
+        'ext_set_return_value': idl_type.ext_set_return_value(
             cpp_value=cpp_return_value,
             release=idl_type.release),
     }

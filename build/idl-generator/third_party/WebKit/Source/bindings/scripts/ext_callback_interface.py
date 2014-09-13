@@ -34,9 +34,9 @@ Design doc: http://www.chromium.org/developers/design-documents/idl-compiler
 """
 
 from idl_types import IdlTypeBase
-from v8_globals import includes
-import v8_types
-import v8_utilities
+from ext_globals import includes
+import ext_types
+import ext_utilities
 
 CALLBACK_INTERFACE_H_INCLUDES = frozenset([
     'bindings/core/v8/ActiveDOMCallback.h',
@@ -74,9 +74,9 @@ def callback_interface_context(callback_interface):
     includes.clear()
     includes.update(CALLBACK_INTERFACE_CPP_INCLUDES)
     return {
-        'conditional_string': v8_utilities.conditional_string(callback_interface),
+        'conditional_string': ext_utilities.conditional_string(callback_interface),
         'cpp_class': callback_interface.name,
-        'v8_class': v8_utilities.v8_class_name(callback_interface),
+        'ext_class': ext_utilities.ext_class_name(callback_interface),
         'header_includes': set(CALLBACK_INTERFACE_H_INCLUDES),
         'methods': [method_context(operation)
                     for operation in callback_interface.operations],
@@ -99,7 +99,7 @@ def method_context(operation):
     if not is_custom:
         add_includes_for_operation(operation)
     call_with = extended_attributes.get('CallWith')
-    call_with_this_handle = v8_utilities.extended_attribute_value_contains(call_with, 'ThisValue')
+    call_with_this_handle = ext_utilities.extended_attribute_value_contains(call_with, 'ThisValue')
     context = {
         'call_with_this_handle': call_with_this_handle,
         'cpp_type': idl_type.callback_cpp_type,

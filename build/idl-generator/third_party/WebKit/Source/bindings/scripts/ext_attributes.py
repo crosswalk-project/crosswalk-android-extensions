@@ -35,10 +35,10 @@ Design doc: http://www.chromium.org/developers/design-documents/idl-compiler
 
 import idl_types
 from idl_types import inherits_interface
-from v8_globals import includes, interfaces
-import v8_types
-import v8_utilities
-from v8_utilities import (capitalize, cpp_name, has_extended_attribute,
+from ext_globals import includes, interfaces
+import ext_types
+import ext_utilities
+from ext_utilities import (capitalize, cpp_name, has_extended_attribute,
                           has_extended_attribute_value, scoped_name, strip_suffix,
                           uncapitalize, extended_attribute_value_as_list)
 
@@ -84,26 +84,26 @@ def attribute_context(interface, attribute):
 
     context = {
         'access_control_list': access_control_list(attribute),
-        'activity_logging_world_list_for_getter': v8_utilities.activity_logging_world_list(attribute, 'Getter'),  # [ActivityLogging]
-        'activity_logging_world_list_for_setter': v8_utilities.activity_logging_world_list(attribute, 'Setter'),  # [ActivityLogging]
-        'activity_logging_world_check': v8_utilities.activity_logging_world_check(attribute),  # [ActivityLogging]
+        'activity_logging_world_list_for_getter': ext_utilities.activity_logging_world_list(attribute, 'Getter'),  # [ActivityLogging]
+        'activity_logging_world_list_for_setter': ext_utilities.activity_logging_world_list(attribute, 'Setter'),  # [ActivityLogging]
+        'activity_logging_world_check': ext_utilities.activity_logging_world_check(attribute),  # [ActivityLogging]
         'argument_cpp_type': idl_type.cpp_type_args(used_as_rvalue_type=True),
         'cached_attribute_validation_method': extended_attributes.get('CachedAttribute'),
-        'conditional_string': v8_utilities.conditional_string(attribute),
+        'conditional_string': ext_utilities.conditional_string(attribute),
         'constructor_type': idl_type.constructor_type_name
                             if is_constructor_attribute(attribute) else None,
         'cpp_name': cpp_name(attribute),
         'cpp_type': idl_type.cpp_type,
         'cpp_type_initializer': idl_type.cpp_type_initializer,
-        'deprecate_as': v8_utilities.deprecate_as(attribute),  # [DeprecateAs]
+        'deprecate_as': ext_utilities.deprecate_as(attribute),  # [DeprecateAs]
         'enum_validation_expression': idl_type.enum_validation_expression,
-        'exposed_test': v8_utilities.exposed(attribute, interface),  # [Exposed]
+        'exposed_test': ext_utilities.exposed(attribute, interface),  # [Exposed]
         'has_custom_getter': has_custom_getter(attribute),
         'has_custom_setter': has_custom_setter(attribute),
         'has_type_checking_unrestricted': has_type_checking_unrestricted,
         'idl_type': str(idl_type),  # need trailing [] on array for Dictionary::ConversionContext::setConversionType
-        'is_call_with_execution_context': v8_utilities.has_extended_attribute_value(attribute, 'CallWith', 'ExecutionContext'),
-        'is_call_with_script_state': v8_utilities.has_extended_attribute_value(attribute, 'CallWith', 'ScriptState'),
+        'is_call_with_execution_context': ext_utilities.has_extended_attribute_value(attribute, 'CallWith', 'ExecutionContext'),
+        'is_call_with_script_state': ext_utilities.has_extended_attribute_value(attribute, 'CallWith', 'ScriptState'),
         'is_check_security_for_node': is_check_security_for_node,
         'is_custom_element_callbacks': is_custom_element_callbacks,
         'is_expose_js_accessors': 'ExposeJSAccessors' in extended_attributes,
@@ -125,11 +125,11 @@ def attribute_context(interface, attribute):
         'is_static': attribute.is_static,
         'is_url': 'URL' in extended_attributes,
         'is_unforgeable': 'Unforgeable' in extended_attributes,
-        'measure_as': v8_utilities.measure_as(attribute),  # [MeasureAs]
+        'measure_as': ext_utilities.measure_as(attribute),  # [MeasureAs]
         'name': attribute.name,
         'only_exposed_to_private_script': is_only_exposed_to_private_script,
-        'per_context_enabled_function': v8_utilities.per_context_enabled_function_name(attribute),  # [PerContextEnabled]
-        'private_script_v8_value_to_local_cpp_value': idl_type.v8_value_to_local_cpp_value(
+        'per_context_enabled_function': ext_utilities.per_context_enabled_function_name(attribute),  # [PerContextEnabled]
+        'private_script_ext_value_to_local_cpp_value': idl_type.ext_value_to_local_cpp_value(
             extended_attributes, 'v8Value', 'cppValue', isolate='scriptState->isolate()', used_in_private_script=True),
         'property_attributes': property_attributes(attribute),
         'put_forwards': 'PutForwards' in extended_attributes,
@@ -137,7 +137,7 @@ def attribute_context(interface, attribute):
         'reflect_invalid': extended_attributes.get('ReflectInvalid', ''),
         'reflect_missing': extended_attributes.get('ReflectMissing'),
         'reflect_only': extended_attribute_value_as_list(attribute, 'ReflectOnly'),
-        'runtime_enabled_function': v8_utilities.runtime_enabled_function_name(attribute),  # [RuntimeEnabled]
+        'runtime_enabled_function': ext_utilities.runtime_enabled_function_name(attribute),  # [RuntimeEnabled]
         'setter_callback': setter_callback_name(interface, attribute),
         'should_be_exposed_to_script': not (is_implemented_in_private_script and is_only_exposed_to_private_script),
         'world_suffixes': ['', 'ForMainWorld']
@@ -197,18 +197,18 @@ def getter_context(interface, attribute, context):
         if base_idl_type != 'EventHandler':
             release = idl_type.release
 
-    def v8_set_return_value_statement(for_main_world=False):
+    def ext_set_return_value_statement(for_main_world=False):
         if context['is_keep_alive_for_gc']:
             return 'v8SetReturnValue(info, wrapper)'
-        return idl_type.v8_set_return_value(cpp_value, extended_attributes=extended_attributes, script_wrappable='impl', release=release, for_main_world=for_main_world)
+        return idl_type.ext_set_return_value(cpp_value, extended_attributes=extended_attributes, script_wrappable='impl', release=release, for_main_world=for_main_world)
 
     context.update({
         'cpp_value': cpp_value,
-        'cpp_value_to_v8_value': idl_type.cpp_value_to_v8_value(
+        'cpp_value_to_ext_value': idl_type.cpp_value_to_ext_value(
             cpp_value=cpp_value, creation_context='info.Holder()',
             extended_attributes=extended_attributes),
-        'v8_set_return_value_for_main_world': v8_set_return_value_statement(for_main_world=True),
-        'v8_set_return_value': v8_set_return_value_statement(),
+        'ext_set_return_value_for_main_world': ext_set_return_value_statement(for_main_world=True),
+        'ext_set_return_value': ext_set_return_value_statement(),
     })
 
 
@@ -221,7 +221,7 @@ def getter_expression(interface, attribute, context):
         arguments.append('toFrameIfNotDetached(info.GetIsolate()->GetCurrentContext())')
         arguments.append('impl')
         arguments.append('&result')
-    arguments.extend(v8_utilities.call_with_arguments(
+    arguments.extend(ext_utilities.call_with_arguments(
         attribute.extended_attributes.get('CallWith')))
     # Members of IDL partial interface definitions are implemented in C++ as
     # static member functions, which for instance members (non-static members)
@@ -327,15 +327,15 @@ def setter_context(interface, attribute, context):
         'has_setter_exception_state':
             is_setter_raises_exception or has_type_checking_interface or
             context['has_type_checking_unrestricted'] or
-            idl_type.v8_conversion_needs_exception_state,
+            idl_type.ext_conversion_needs_exception_state,
         'has_type_checking_interface': has_type_checking_interface,
-        'is_setter_call_with_execution_context': v8_utilities.has_extended_attribute_value(
+        'is_setter_call_with_execution_context': ext_utilities.has_extended_attribute_value(
             attribute, 'SetterCallWith', 'ExecutionContext'),
         'is_setter_raises_exception': is_setter_raises_exception,
-        'private_script_cpp_value_to_v8_value': idl_type.cpp_value_to_v8_value(
+        'private_script_cpp_value_to_ext_value': idl_type.cpp_value_to_ext_value(
             'cppValue', isolate='scriptState->isolate()',
             creation_context='scriptState->context()->Global()'),
-        'v8_value_to_local_cpp_value': idl_type.v8_value_to_local_cpp_value(
+        'ext_value_to_local_cpp_value': idl_type.ext_value_to_local_cpp_value(
             extended_attributes, 'v8Value', 'cppValue'),
     })
 
@@ -345,7 +345,7 @@ def setter_context(interface, attribute, context):
 
 def setter_expression(interface, attribute, context):
     extended_attributes = attribute.extended_attributes
-    arguments = v8_utilities.call_with_arguments(
+    arguments = ext_utilities.call_with_arguments(
         extended_attributes.get('SetterCallWith') or
         extended_attributes.get('CallWith'))
 

@@ -1,0 +1,5 @@
+How to build the idl_demo extension with your application:
+
+  XAE=<path-to-xwalk-android-extension>
+  cd $(dirname $(which make_apk.py))
+  python make_apk.py --name=idl_demo --package=org.xwalk.extensions.idl_demo --extensions="$XAE/out/Default/gen/idl_demo/" --arch=x86 --manifest=$XAE/examples/idl_demo/idl_demo.json

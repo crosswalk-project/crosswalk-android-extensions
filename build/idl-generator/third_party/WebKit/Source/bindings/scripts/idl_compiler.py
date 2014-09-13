@@ -27,7 +27,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Compile an .idl file to Blink V8 bindings (.h and .cpp files).
+"""Compile an .idl file to Crosswalk Extension source files
 
 Design doc: http://www.chromium.org/developers/design-documents/idl-compiler
 """
@@ -38,7 +38,7 @@ import os
 import cPickle as pickle
 import sys
 
-from code_generator_v8 import CodeGeneratorDictionaryImpl, CodeGeneratorV8
+from code_generator_ext import CodeGeneratorDictionaryImpl, CodeGeneratorExt
 from idl_reader import IdlReader
 from utilities import read_idl_files_list_from_file, write_file
 
@@ -115,12 +115,12 @@ class IdlCompiler(object):
         pass
 
 
-class IdlCompilerV8(IdlCompiler):
+class IdlCompilerExt(IdlCompiler):
     def __init__(self, *args, **kwargs):
         IdlCompiler.__init__(self, *args, **kwargs)
-        self.code_generator = CodeGeneratorV8(self.interfaces_info,
-                                              self.cache_directory,
-                                              self.output_directory)
+        self.code_generator = CodeGeneratorExt(self.interfaces_info,
+                                               self.cache_directory,
+                                               self.output_directory)
 
     def compile_file(self, idl_filename):
         self.compile_and_write(idl_filename)
@@ -137,7 +137,7 @@ class IdlCompilerDictionaryImpl(IdlCompiler):
 
 
 def generate_bindings(options, input_filename):
-    idl_compiler = IdlCompilerV8(
+    idl_compiler = IdlCompilerExt(
         options.output_directory,
         cache_directory=options.cache_directory,
         interfaces_info_filename=options.interfaces_info_file,
