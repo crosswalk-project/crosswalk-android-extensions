@@ -1,0 +1,9 @@
+{
+  "name": "idl_demo-test",
+  "version": "0.0.0.1",
+  "app": {
+    "launch":{
+      "local_path": "idl_demo.html"
+    }
+  }
+}

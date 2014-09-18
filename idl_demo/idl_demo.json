@@ -1,0 +1,5 @@
+{
+  "name":    "idl_demo",
+  "class":   "org.xwalk.extensions.idl_demo",
+  "jsapi":   "idl_demo.js"
+}

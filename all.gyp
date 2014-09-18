@@ -13,6 +13,7 @@
       'type': 'none',
       'dependencies': [
         'iap/iap.gyp:*',
+        'idl_demo/idl_demo.gyp:*',
       ],
     },
   ],

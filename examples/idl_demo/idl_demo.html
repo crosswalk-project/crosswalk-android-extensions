@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html><head></head>
+
+<body>
+
+<style type="text/css">
+  body { margin: auto; width: 100%; }
+  .title { margin: 20; padding: 20; font-size: 42; font-weight: bold; text-align: center; }
+  div.centre {
+    background: gray;
+    width: 700px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
+
+<div class="title">IDL Generator Test</div>
+<p>
+<div class="centre" id="result"></div>
+
+<script>
+window.onload = function() {
+  if (typeof window.idl_demo === 'undefined') {
+    document.title = 'Fail';
+    console.log("no idl_demo support");
+    return;
+  }
+  var errorCallBack = function(error) {
+    document.title = 'Fail';
+    console.log(error);
+  }
+
+  idl_demo.hi("Hello World!").then(function(result) {
+    document.getElementById("result").innerHTML = result;
+  }, errorCallBack);
+}
+</script>
+
+</body></html>
