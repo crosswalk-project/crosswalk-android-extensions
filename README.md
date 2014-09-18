@@ -21,9 +21,10 @@ Use `which make_apk.py` to double check.
 
 ## Building an external extension
 export GYP_GENERATORS='ninja'
-./gyp_extensions
-ninja -C out/Default # or for individual target as follows
-ninja -C out/Default iap
+
+gyp --depth=. all.gyp
+
+ninja -C out/Default or for individual target as follows ninja -C out/Default iap
 
 ## License
 This project's code uses the Apache license, see our `LICENSE.AL2` file.
