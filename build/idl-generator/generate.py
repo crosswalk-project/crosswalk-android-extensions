@@ -68,7 +68,7 @@ def main(argv):
   binding_path = os.path.normpath(os.path.join(module_path,
       'third_party', 'WebKit', 'Source', 'bindings', 'tests'))
   binding_modules_path = os.path.join(binding_path, 'idls', 'modules')
-  shutil.copy(args.idl_file, binding_modules_path);
+  shutil.copy(args.idl_file, binding_modules_path)
 
   # Run bindings test script to generate sources
   generate_extension_sources(args.verbose)

@@ -1,3 +1,22 @@
+{##############################################################################}
+{% macro handle_cmd_begin(cmd) %}
+    case '{{cmd}}':
+{%- endmacro %}
+{##############################################################################}
+{% macro handle_cmd_end(cmd) %}
+      if (typeof handle{{cmd|capitalize}} === 'function') {
+        handle{{cmd|capitalize}}(msg);
+{# Note: currently not able to capitalize words in a string,
+   e.g. if cmd is 'contactschange', and if developer would like to provide
+   self-defined handler, then need to write 'handleContactschange()',
+   instead of 'handleContactsChange()' #}
+      } else {
+        g_async_calls[msg.asyncCallId].resolve(msg.data);
+        delete _promises[msg.asyncCallId];
+      }
+      break;
+{% endmacro %}
+{##############################################################################}
 // Copyright (c) 2014 Intel Corporation. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -61,20 +80,102 @@ function derive(child, parent) {
 // Exports and main entry point for the {{interface_name}} API
 ///////////////////////////////////////////////////////////////////////////////
 
-//TODO(hdq) var g_{{interface_name|lower}}_listeners = {};
+{% set manager_name = interface_name|capitalize %}
+{% set manager = {
+    'name': '%sManager' % manager_name,
+    'prototype': '%sManager.prototype' % manager_name } %}
+{% set listeners = 'g_%s_listeners' % interface_name|lower %}
+{% set g_manager = 'g_%s_manager' % interface_name|lower %}
+var {{listeners}} = {};
+{% for attribute in attributes if attribute.idl_type == 'EventHandler' %}
+{{listeners}}['{{attribute.name|replace('on', '', 1)}}'] = [];
+{% endfor %}
+
+function {{manager.name}} {
+{% for attribute in attributes if attribute.idl_type == 'EventHandler' %}
+  this.{{attribute.name}} = null;
+{% endfor %}
+}
+
+function isValidType(type) {
+  return (
+{% for attribute in attributes if attribute.idl_type == 'EventHandler' %}
+    type === '{{attribute.name}}' ||
+{% endfor %}
+    false);
+}
+
+{{manager.prototype}}.addEventListener = function(type, callback) {
+  if (typeof callback !== 'function' || !isValidType(type))
+    return;
+
+  if ({{listeners}}[type].indexOf(callback)) {
+    {{listeners}}[type].push(callback);
+  }
+};
+
+{{manager.prototype}}.removeEventListener = function(type, callback) {
+  if (typeof callback !== 'function' || !isValidType(type))
+    return;
+
+  var index = {{listeners}}[type].indexOf(callback);
+  if (index >= 0) {
+    {{listeners}}[type].splice(index, 1);
+  }
+};
+
+{{manager.prototype}}.dispatchEvent = function(event) {
+  if (typeof event !== 'object' || !isValidType(event.type))
+    return false;
+
+  var handled = true;
+  {{listeners}}[event.type].forEach(function(callback) {
+      var res = callback(event);
+      if (!res && handled)
+        handled = false;
+    });
+
+  return handled;
+};
+
+{# TODO(hdq)
+1. support self-defined function:
+   if not method.is_custom (is_custom = 'Custom' in extended_attributes)
+2. Find a way to insert developer's specific code in here #}
+{% for method in methods %}
+{{manager.prototype}}.{{method.name}} = function({{method.argument_list}}) {
+  var msg = {
+    'cmd': '{{method.name}}',
+{% for arg in method.arguments %}
+    '{{arg.name}}': {{arg.name}},
+{% endfor %}
+  };
+{# TODO(hdq) Only return Promise for function defined with Promise:
+             if method.idl_type == 'Promise' #}
+  return createPromise(msg);
+};
+{% endfor %}
+
+var {{g_manager}} = new {{manager.name}}();
+exports = {{g_manager}};
 
 extension.setMessageListener(function(json) {
   var msg = JSON.parse(json);
   switch (msg.cmd) {
 {% for method in methods %}
-    case '{{method.name}}':
-      if (typeof handle{{method.name|capitalize}} === 'function') {
-        handle{{method.name|capitalize}}(msg);
-      } else {
-        g_async_calls[msg.asyncCallId].resolve(msg.data);
-        delete _promises[msg.asyncCallId];
+{{handle_cmd_begin(method.name)}}
+{{handle_cmd_end(method.name)}}
+{% endfor %}
+{##}
+{% for attribute in attributes if attribute.idl_type == 'EventHandler' %}
+{% set event = '%s' % attribute.name|replace('on', '', 1) %}
+{{handle_cmd_begin(event)}}
+      var event = new CustomEvent('{{event}}');
+      {{g_manager}}.dispatchEvent(event);
+      if (typeof {{g_manager}}.{{attribute.name}} === 'function') {
+        {{g_manager}}.{{attribute.name}}(event);
       }
-      break;
+{{handle_cmd_end(event)}}
 {% endfor %}
     case 'asyncCallError':
       handleAsyncCallError(msg);
@@ -88,18 +189,3 @@ function handleAsyncCallError(msg) {
   g_async_calls[msg.asyncCallId].reject(Error('Async operation failed'));
   delete _promises[msg.asyncCallId];
 }
-
-//TODO(hdq) Find a way to insert developer's specific code in here
-{% for method in methods %}
-exports.{{method.name}} = function({{method.argument_list}}) {
-  var msg = {
-    'cmd': '{{method.name}}',
-{% for arg in method.arguments %}
-    '{{arg.name}}': {{arg.name}},
-{% endfor %}
-  };
-//TODO(hdq) Only return Promise for function defined with Promise
-  return createPromise(msg);
-};
-
-{% endfor %}

@@ -1,4 +1,5 @@
-interface idl_demo {
+interface idl_demo : EventTarget {
   void dummy();
   void hi(DOMString words);
+  attribute EventHandler ondemoevent;
 };
