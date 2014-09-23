@@ -41,7 +41,7 @@
         'js_file': '<(gen_js_file)',
         'json_file': '<(component).json',
         'input_jars_paths': [
-          '<!(dirname $(which make_apk.py))/libs/xwalk_app_runtime_java.jar',
+          '<(app_runtime_java_jar)',
           '<(android_jar)',
         ],
       },
