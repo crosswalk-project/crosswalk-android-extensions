@@ -73,13 +73,20 @@ def main(argv):
   # Run bindings test script to generate sources
   generate_extension_sources(args.verbose)
   MakeDirectory(out_src_path)
-
-  # Move generated files to out dir
   binding_results_path = os.path.join(binding_path, 'results')
   js_file = args.component + '.js'
   java_file = args.component + '.java'
   js_result = os.path.join(binding_results_path, js_file)
   java_result = os.path.join(binding_results_path, java_file)
+
+  # Concatenate self-defined js to generated js
+  self_defined_js = os.path.join(os.path.dirname(args.idl_file), js_file)
+  with open(js_result, 'a') as outfile:
+    outfile.write(os.linesep)
+    with open(self_defined_js, 'r') as infile:
+      outfile.write(infile.read())
+
+  # Move generated files to out dir
   MoveFile(js_result, os.path.join(out_build_path, js_file))
   MoveFile(java_result, os.path.join(out_src_path, java_file))
   Remove(os.path.join(binding_modules_path, os.path.basename(args.idl_file)))

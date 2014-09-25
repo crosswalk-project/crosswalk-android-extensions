@@ -1,5 +1,20 @@
 interface idl_demo : EventTarget {
+  // Test empty function, will do nothing for it
   void dummy();
-  void hi(DOMString words);
+
+  // Test function with a DOMString argument.
+  // This demo function returns a string which processed by native code.
+  Promise hi(DOMString words);
+
+  // Test self-defined handler:
+  // user can write function in JS to handle msg which received from native code.
+  //
+  // This demo function returns result of (a+b)*2, by following:
+  // 1. pass a and b to native code
+  // 2. native code returns result of a+b
+  // 3. self-defined function multiplies the result with 2 and return it
+  Promise calculate(unsigned long a, unsigned long b);
+
+  // Test EventHandler: supports addEventHandler, removeEventHandler, and on...event()
   attribute EventHandler ondemoevent;
 };
