@@ -39,7 +39,6 @@ public class {{interface_name}} extends XWalkExtensionClient {
             String cmd = jsonInput.getString("cmd");
             JSONObject jsonOutput = null;
             if (false) {}
-            {# ^TODO can we remove it? #}
 {% for method in methods %}
             else if (cmd.equals(CMD_{{method.name|upper}})) {
                 jsonOutput = mImpl.on{{method.name|capitalize}}(jsonInput);
