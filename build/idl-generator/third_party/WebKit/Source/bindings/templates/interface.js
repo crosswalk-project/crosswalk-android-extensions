@@ -10,9 +10,9 @@
    e.g. if cmd is 'contactschange', and if developer would like to provide
    self-defined handler, then need to write 'handleContactschange()',
    instead of 'handleContactsChange()' #}
-      } else {
+      } else if (typeof msg.asyncCallId !== 'undefined') {
         g_async_calls[msg.asyncCallId].resolve(msg.data);
-        delete _promises[msg.asyncCallId];
+        delete g_async_calls[msg.asyncCallId];
       }
       break;
 {% endmacro %}
@@ -91,7 +91,7 @@ var {{listeners}} = {};
 {{listeners}}['{{attribute.name|replace('on', '', 1)}}'] = [];
 {% endfor %}
 
-function {{manager.name}} {
+function {{manager.name}}() {
 {% for attribute in attributes if attribute.idl_type == 'EventHandler' %}
   this.{{attribute.name}} = null;
 {% endfor %}
@@ -100,7 +100,7 @@ function {{manager.name}} {
 function isValidType(type) {
   return (
 {% for attribute in attributes if attribute.idl_type == 'EventHandler' %}
-    type === '{{attribute.name}}' ||
+    type === '{{attribute.name|replace('on', '', 1)}}' ||
 {% endfor %}
     false);
 }
@@ -171,6 +171,7 @@ extension.setMessageListener(function(json) {
 {% set event = '%s' % attribute.name|replace('on', '', 1) %}
 {{handle_cmd_begin(event)}}
       var event = new CustomEvent('{{event}}');
+      _addConstProperty(event, 'msg', msg);
       {{g_manager}}.dispatchEvent(event);
       if (typeof {{g_manager}}.{{attribute.name}} === 'function') {
         {{g_manager}}.{{attribute.name}}(event);
@@ -186,6 +187,9 @@ extension.setMessageListener(function(json) {
 });
 
 function handleAsyncCallError(msg) {
+  if (typeof msg.asyncCallId === 'undefined')
+    return;
+
   g_async_calls[msg.asyncCallId].reject(Error('Async operation failed'));
   delete _promises[msg.asyncCallId];
 }
