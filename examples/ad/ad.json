@@ -1,0 +1,9 @@
+{
+  "name": "ad-test",
+  "version": "0.0.0.1",
+  "app": {
+    "launch":{
+      "local_path": "ad.html"
+    }
+  }
+}

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html><head></head>
+
+<body>
+
+<script>
+var MY_PUBID = "<Your pub id>";
+
+var success = function(ad) {
+  ad.onopened = function() {console.log("open")}
+  ad.onclosed = function() {console.log("close")}
+  ad.onfailed = function(msg) {
+    console.log(JSON.stringify(msg));
+    console.log("failed");
+    ad.destroy()
+  }
+  ad.onloaded = function() {
+    console.log("loaded");
+    ad.show(true);
+  }
+};
+
+var error = function(err) {
+  console.log(JSON.stringify(err));
+};
+
+showUnoverlappedAd = function() {
+  xwalk.experimental.ad.create({
+      "service" : "admob",
+      "publisherId" : MY_PUBID,
+      "type" : "banner",
+      "size" : "BANNER",
+      "bannerAtTop" : false,
+      "overlap" : false
+  }).then(success, error);
+}
+showOverlappedAd = function() {
+  xwalk.experimental.ad.create({
+      "service" : "admob",
+      "publisherId" : MY_PUBID,
+      "type" : "banner",
+      "size" : "SMART_BANNER",
+      "bannerAtTop" : true,
+      "overlap" : true
+  }).then(success, error);
+
+}
+showInterstitialAd = function() {
+  xwalk.experimental.ad.create({
+      "service" : "admob",
+      "publisherId" : MY_PUBID,
+      "type" : "interstitial",
+  }).then(success, error);
+
+}
+</script>
+<style>
+.button {
+  height : 10em;
+  width : 20em;
+}
+</style>
+<input type="button" class="button" value="Unoverlapped" onclick="showUnoverlappedAd()"/>
+<br/>
+<input type="button" class="button" value="Overlapped"  onclick="showOverlappedAd()"/>
+<br/>
+<input type="button" class="button" value="Interstitial"  onclick="showInterstitialAd()"/>
+</body></html>
