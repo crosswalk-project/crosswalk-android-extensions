@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="ardrone_video">
+  <target name="combine_jars">
+    <move file="${dest.dir}/${dest.file}" tofile="${dest.dir}/_${dest.file}"/>
+    <jar destfile="${dest.dir}/${dest.file}">
+      <zipgroupfileset dir="${extra.jar.dir}" includes="*.jar"/>
+      <zipgroupfileset dir="${dest.dir}" includes="_${dest.file}"/>
+    </jar>
+    <delete file="${dest.dir}/_${dest.file}"/>
+  </target>
+</project>

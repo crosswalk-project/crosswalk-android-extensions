@@ -6,6 +6,23 @@ $(document).ready(function(){
     return;
   }
 
+  var droneVideo = xwalk.experimental.ardrone.video || null;
+  if (!droneVideo) {
+    console.log('xwalk.experimental.ardrone.video is not avilable.');
+    return;
+  }
+
+  // Customize your ARDrone ip address here.
+  option = new ARDroneVideoOption();
+  option.ipAddress = "192.168.1.1";
+
+  droneVideo.play('ardrone_video', option)
+    .then(function() {
+      console.log('Play okay');
+    }, function(e) {
+      console.log(e.message);
+    });
+
   var width = $(window).width();
   var height = $(window).height();
 

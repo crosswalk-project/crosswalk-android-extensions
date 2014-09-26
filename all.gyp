@@ -13,6 +13,7 @@
       'type': 'none',
       'dependencies': [
         'ardrone_pilot/ardrone_pilot.gyp:*',
+        'ardrone_video/ardrone_video.gyp:*',
         'iap/iap.gyp:*',
         'idl_demo/idl_demo.gyp:*',
       ],

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>ARDrone Video Test</head>
+
+<body>
+
+<canvas id="ardrone_video" width="640" height="360"></canvas>
+
+<script>
+window.onload = function() {
+  var droneVideo = xwalk.experimental.ardrone.video || null;
+  if (!droneVideo) {
+    console.log('xwalk.experimental.ardrone.video is not avilable.');
+    return;
+  }
+
+  // Customize your ARDrone ip address here.
+  option = new ARDroneVideoOption();
+  option.ipAddress = "192.168.1.1";
+
+  droneVideo.play('ardrone_video', option)
+    .then(function() {
+      console.log('Play okay');
+    }, function(e) {
+      console.log(e.message);
+    });
+}
+</script>
+
+</body>
+</html>
