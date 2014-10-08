@@ -28,7 +28,7 @@ public class {{interface_name}} extends XWalkExtensionClient {
     public {{interface_name}}(String name, String JsApiContent, XWalkExtensionContextClient context) {
         super(name, JsApiContent, context);
         mExtensionContext = context;
-        mImpl = new {{interface_name}}_impl();
+        mImpl = new {{interface_name}}_impl(this);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class {{interface_name}} extends XWalkExtensionClient {
             }
             if (!jsonOutput.has("cmd")) jsonOutput.put("cmd", cmd);
             jsonOutput.put("asyncCallId", jsonInput.getString("asyncCallId"));
-            postMessage(instanceId, jsonOutput.toString());
+            this.postMessage(instanceId, jsonOutput.toString());
         } catch (JSONException e) {
             Log.e(TAG, e.toString());
         }

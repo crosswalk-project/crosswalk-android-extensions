@@ -17,9 +17,19 @@
 
 <div class="title">IDL Generator Test</div>
 <p>
-<div class="centre" id="result"></div>
+<textarea cols=100 rows=40 id="result"></textarea>
 
 <script>
+function onDemoEvent(event) {
+  var output = document.getElementById("result");
+  if (typeof event.msg === 'undefined' ||
+      typeof event.msg.data === 'undefined') {
+    output.value += 'Not expected, received: ' + JSON.stringify(event) + '\n';
+  } else {
+    output.value += event.msg.data + '\n';
+  }
+}
+
 window.onload = function() {
   if (typeof window.idl_demo === 'undefined') {
     document.title = 'Fail';
@@ -31,8 +41,11 @@ window.onload = function() {
     console.log(error);
   }
 
+  idl_demo.addEventListener('demoevent', onDemoEvent);
+
   idl_demo.hi("Hello World!").then(function(result) {
-    document.getElementById("result").innerHTML = result;
+    var output = document.getElementById("result");
+    output.value += result + '\n';
   }, errorCallBack);
 }
 </script>
