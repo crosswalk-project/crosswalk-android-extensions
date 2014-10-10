@@ -1,0 +1,25 @@
+{
+  "name": "xwalk_ardrone_demo_app",
+  "xwalk_description": "Crosswalk based app for ARDrone",
+  "xwalk_version": "0.0.0.1",
+  "start_url": "index.html",
+  "csp": "script-src 'self'; object-src 'self'",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "96x96"
+    }
+  ],
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "xwalk_permissions": [
+    "Fullscreen",
+    "Geolocation",
+    "Presentation",
+    "ScreenOrientation"
+  ],
+  "xwalk_hosts": [
+    "http://*"
+  ]
+}

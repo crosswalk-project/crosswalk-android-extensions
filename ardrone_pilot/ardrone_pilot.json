@@ -1,0 +1,5 @@
+{
+  "name":  "xwalk.experimental.ardrone",
+  "class": "org.xwalk.extensions.ardrone_pilot.ARDrone",
+  "jsapi": "ardrone_pilot.js"
+}
