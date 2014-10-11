@@ -12,7 +12,10 @@
       'target_name': 'ardrone_pilot',
       'type': 'none',
       'variables': {
-        'java_in_dir': '.',
+        # FIXME(hdq) http://code.google.com/p/gyp/issues/detail?id=112
+        # After r1913 merged we can change back to:
+        # 'java_in_dir': '.',
+        'java_in_dir': '../ardrone_pilot',
         'js_file': 'ardrone_pilot.js',
         'json_file': 'ardrone_pilot.json',
         'input_jars_paths': [
