@@ -34,6 +34,7 @@ import org.xwalk.app.runtime.extension.XWalkExtensionContextClient;
 public class ARDroneVideo extends XWalkExtensionClient {
     private static final String TAG = "ARDroneVideoExtension";
 
+    private boolean mIsInitialized = false;
     private ARDroneVideoOption mOption;
     private InputStream mVideoStream;
     private Thread mParse2RawH264Thread;
@@ -75,14 +76,16 @@ public class ARDroneVideo extends XWalkExtensionClient {
             String cmd = jsonInput.getString("cmd");
 
             JSONObject jsonOutput = new JSONObject();
-            if (cmd.equals("play")) {
-                jsonOutput.put("data", handlePlay(jsonInput.getJSONObject("option")));
+            if (cmd.equals("init")) {
+                jsonOutput.put("data", handleInit(jsonInput.getJSONObject("option")));
+            } else if (cmd.equals("play")) {
+                jsonOutput.put("data", handlePlay());
             } else if (cmd.equals("stop")) {
                 jsonOutput.put("data", handleStop());
             } else if (cmd.equals("removeFile")) {
                 jsonOutput.put("data", handleRemoveFile(jsonInput.getString("path")));
             } else {
-                jsonOutput.put("data", setErrorMessage("Unsupportted cmd " + cmd));
+                jsonOutput.put("data", setErrorMessage("Unsupportted command: " + cmd));
             }
 
             jsonOutput.put("asyncCallId", jsonInput.getString("asyncCallId"));
@@ -113,7 +116,7 @@ public class ARDroneVideo extends XWalkExtensionClient {
         return out;
     }
 
-    private JSONObject handlePlay(JSONObject option) {
+    private JSONObject handleInit(JSONObject option) {
         mOption = new ARDroneVideoOption(option);
         if (mOption.codec() == ARDroneVideoCodec.UNKNOWN || mOption.channel() == ARDroneVideoChannel.UNKNOWN)
             return setErrorMessage("Wrong options passed in.");
@@ -126,6 +129,7 @@ public class ARDroneVideo extends XWalkExtensionClient {
                 address = InetAddress.getByName(mOption.ipAddress());
             } catch (UnknownHostException e) {
                 Log.e(TAG, e.toString());
+                return setErrorMessage("Unknown host: " + mOption.ipAddress());
             }
 
             Socket socket = new Socket(address, mOption.port());
@@ -133,8 +137,29 @@ public class ARDroneVideo extends XWalkExtensionClient {
             mRunnable = new DecodeRunnable();
             mParse2RawH264Thread = new Thread(mRunnable);
             mParse2RawH264Thread.start();
+
+            // Send out 'deviceready' event
+            JSONObject out = new JSONObject();
+            try {
+                out.put("eventName", "deviceready");
+                out.put("data", new JSONObject());
+
+                broadcastMessage(out.toString());
+            } catch (JSONException e) {
+                printErrorMessage(e);
+            }
         } catch (IOException e) {
             Log.e(TAG, e.toString());
+            return setErrorMessage("Failed to start video streaming.");
+        }
+
+        mIsInitialized = true;
+        return new JSONObject();
+    }
+
+    private JSONObject handlePlay() {
+        if (!mIsInitialized) {
+            return setErrorMessage("Please initialize first.");
         }
 
         return new JSONObject();
@@ -225,9 +250,10 @@ public class ARDroneVideo extends XWalkExtensionClient {
                 }
 
                 if (mp4File.exists()) {
+                    // Send out 'newvideoready' event
                     JSONObject out = new JSONObject();
                     try {
-                        out.put("reply", "newvideoready");
+                        out.put("eventName", "newvideoready");
                         JSONObject path = new JSONObject();
                         path.put("absolutePath", mp4File.getAbsolutePath());
                         out.put("data", path);

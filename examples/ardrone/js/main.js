@@ -16,9 +16,18 @@ $(document).ready(function(){
   option = new ARDroneVideoOption();
   option.ipAddress = "192.168.1.1";
 
-  droneVideo.play('ardrone_video', option)
+  droneVideo.addEventListener('deviceready', function(e) {
+    droneVideo.play('ardrone_video')
+      .then(function() {
+        console.log('Play okay');
+      }, function(e) {
+        console.log(e.message);
+      });
+  });
+
+  droneVideo.init(option)
     .then(function() {
-      console.log('Play okay');
+      console.log('Init okay');
     }, function(e) {
       console.log(e.message);
     });
