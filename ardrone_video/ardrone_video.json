@@ -1,0 +1,5 @@
+{
+  "name":  "xwalk.experimental.ardrone.video",
+  "class": "org.xwalk.extensions.ardrone.video.ARDroneVideo",
+  "jsapi": "ardrone_video.js"
+}

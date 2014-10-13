@@ -1,0 +1,50 @@
+// Copyright (c) 2014 Intel Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+enum ARDroneVideoCodec {
+    // A MJPG-like codec, which was the default one until 1.6.4.
+    VLIB = 1,
+    // A h264-like codec, which should be the default one after 1.6.4.
+    P264 = 2
+};
+
+enum ARDroneVideoChannel {
+    ZAP_CHANNEL_HORI = 1,
+    ZAP_CHANNEL_VERT = 2,
+    ZAP_CHANNEL_LARGE_HORI_SMALL_VERT = 3,
+    ZAP_CHANNEL_LARGE_VERT_SMALL_HORI = 4
+};
+
+dictionary ARDroneVideoOption {
+    unsigned DOMString ipAddress = "192.168.1.1";
+    unsigned long port = 5555;
+    unsigned long latency = -1; // milliseconds to update mp4 files, -1 means no control
+    unsigned long bitrate = 15000; // also called fps, in millisecond
+    ARDroneVideoCodec codec = P264;
+    ARDroneVideoChannel channel = ZAP_CHANNEL_HORI;
+};
+
+interface ARDroneVideo : EventTarget {
+    // Attributes
+    attribute ARDroneVideoOption option;
+    readonly attribute boolean isPlaying;
+
+    // Methods
+    Promise play(DOMString idOfCanvas, optional ARDroneVideoOption option);
+    Promise stop();
+    Promise removeFile(DOMString path);
+
+    // Events
+    attribute EventHandler onnewvideoready;
+};
+
+dictionary ARDroneVideoEventInit : EventInit {
+    readonly attribute DOMString absolutePath;
+};
+
+[
+    Constructor(DOMString type, optional ARDroneVideoEventInit eventInitDict)
+] interface ARDroneVideoEvent : Event {
+    readonly attribute DOMString videoFile;
+};
