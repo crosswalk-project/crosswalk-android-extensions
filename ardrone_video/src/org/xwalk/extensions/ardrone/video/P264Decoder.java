@@ -11,10 +11,6 @@ import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Date;
 
-/*
- * The PaVE header defination can be found at
- * https://github.com/elliotwoods/ARDrone-GStreamer-test/blob/master/plugin/src/pave.h
- */
 public class P264Decoder {
     private static final String TAG = "P264Decoder";
     private byte[] mStartFrame;

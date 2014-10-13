@@ -9,12 +9,18 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 
+/*
+ * The PaVE header defination can be found at
+ * https://github.com/elliotwoods/ARDrone-GStreamer-test/blob/master/plugin/src/pave.h
+ */
 public class P264Frame {
     private static final String TAG = "P264Frame";
 
     private byte[] mHeader;
     private byte[] mPayload;
     private int mPayloadLength;
+    private int mDisplayWidth;
+    private int mDisplayHeight;
 
     private enum P264FrameType {
         UNKNNOWN,
@@ -44,11 +50,16 @@ public class P264Frame {
         mPayload = null;
         mHeader = null;
         mPayloadLength = 0;
+        mDisplayWidth = 0;
+        mDisplayHeight = 0;
     }
 
     public boolean isStartFrame() {
         return mHeader[30] == P264FrameType.IDR_FRAME.getValue();
     }
+
+    public int getDisplayWidth() { return mDisplayWidth; }
+    public int getDisplayHeight() { return mDisplayHeight; }
 
     public byte[] getPayload() { return mPayload; }
 
@@ -58,9 +69,17 @@ public class P264Frame {
         mHeader = new byte[76];
         inputStream.read(mHeader, 0, 76);
 
+        // Get payload size
         byte[] bytes = new byte[4];
         System.arraycopy(mHeader, 8, bytes, 0, 4);
         mPayloadLength = unsignedIntBytes2Int(bytes);
+
+        // Get display width/height
+        bytes = new byte[2];
+        System.arraycopy(mHeader, 16, bytes, 0, 2);
+        mDisplayWidth = unsignedIntBytes2Int(bytes);
+        System.arraycopy(mHeader, 18, bytes, 0, 2);
+        mDisplayHeight = unsignedIntBytes2Int(bytes);
 
         mPayload = new byte[mPayloadLength];
 

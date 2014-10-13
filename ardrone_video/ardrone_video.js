@@ -75,35 +75,33 @@ exports.play = function(idOfCanvas) {
 
   // Create a tempory hidden video element
   g_video = document.createElement('video');
-  g_video.removeAttribute("controls");
-  g_video.removeAttribute("autoplay");
-  g_video.setAttribute("hidden", "hidden");
-  g_video.setAttribute("preload", "auto");
+  g_video.removeAttribute('controls');
+  g_video.removeAttribute('autoplay');
+  g_video.setAttribute('hidden', 'hidden');
+  g_video.setAttribute('preload', 'none');
 
   document.body.appendChild(g_video);
 
   function _updateCanvas() {
-    if (!g_video.paused && !g_video.ended) {
+    if (!g_video.paused && !g_video.ended || !g_video.error) {
       ctx.drawImage(g_video, 0, 0, canvas.width, canvas.height);
     }
   }
 
   g_video.addEventListener('play', function() {
-    _clearCanvasTimer();
-
     // TODO(halton): hard-code 30 FPS
     var timer = window.requestInterval(_updateCanvas, 1000 / 30);
 
     g_canvas_timer = new Object();
     g_canvas_timer.value = timer.value;
-  }, true);
+  }, false);
 
   exports.addEventListener('newvideoready', function(e) {
-    g_video.pause();
+    _clearCanvasTimer();
+    g_video.src = 'file://' + e.absolutePath;
+
     _removeLastMp4File();
     g_last_mp4_file = e.absolutePath;
-
-    g_video.src = 'file://' + e.absolutePath;
     g_video.play();
   });
 

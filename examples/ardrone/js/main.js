@@ -15,6 +15,7 @@ $(document).ready(function(){
   // Customize your ARDrone ip address here.
   option = new ARDroneVideoOption();
   option.ipAddress = "192.168.1.1";
+  option.latency = 500; // 500ms can reduce splash with Halton's testing
 
   droneVideo.addEventListener('deviceready', function(e) {
     droneVideo.play('ardrone_video')
