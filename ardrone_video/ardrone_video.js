@@ -41,14 +41,26 @@ function ARDroneVideoOption () {
 
 window.ARDroneVideoOption = ARDroneVideoOption;
 
-exports.isPlaying = false;
+exports.initialized = false;
 
-exports.play = function(idOfCanvas, option) {
-  if (exports.isPlaying) {
-    console.log('Video is playing, please stop first.');
-    return;
+exports.init = function(option) {
+  if (_isARDroneVideoOption(option)) {
+    exports.option = option;
+  } else if (!_isARDroneVideoOption(exports.option)) {
+    exports.option = new ARDroneVideoOption();
   }
+  exports.initialized = false;
 
+  var msg = {
+    'cmd': 'init',
+    'option': exports.option
+  };
+
+  exports.addEventListener('deviceready', function(e) { exports.initialized = true; });
+  return _createPromise(msg);
+};
+
+exports.play = function(idOfCanvas) {
   var canvas = document.getElementById(idOfCanvas);
   if (!canvas) {
     console.log('Invalid canvas id: ' + idOfCanvas);
@@ -95,15 +107,8 @@ exports.play = function(idOfCanvas, option) {
     g_video.play();
   });
 
-  if (_isARDroneVideoOption(option)) {
-    exports.option = option;
-  } else if (!_isARDroneVideoOption(exports.option)) {
-    exports.option = new ARDroneVideoOption();
-  }
-
   var msg = {
     'cmd': 'play',
-    'option': exports.option
   };
 
   return _createPromise(msg);
@@ -135,8 +140,8 @@ function _cleanup() {
 }
 
 exports.stop = function() {
-  if (!exports.isPlaying) {
-    console.log('Video is not playing, nothing to do.');
+  if (!exports.initialized) {
+    console.log('Video is not initialized, please call init() first.');
     return;
   }
 
@@ -164,48 +169,59 @@ function _addConstProperty(obj, propertyKey, propertyValue) {
   });
 }
 
-window.ARDroneVideoEvent = function(data) {
+window.ARDroneDeviceReadyEvent = function() {
+  this.prototype = new Event('ARDroneDeviceReadyEvent');
+};
+
+window.ARDroneNewVideoEvent = function(data) {
   _addConstProperty(this, 'absolutePath', data.absolutePath);
-  this.prototype = new Event('ARDroneVideoEvent');
+  this.prototype = new Event('ARDroneNewVideoEvent');
 };
 
 extension.setMessageListener(function(json) {
   var msg = JSON.parse(json);
 
-  // Handle events
-  if (msg.reply == 'newvideoready') {
-    for (var id in g_listeners) {
-      var event = new ARDroneVideoEvent(msg.data);
-      g_listeners[id]['callback'](event);
+  // Handle promises
+  if (!msg.eventName) {
+    if (msg.data.error) {
+      g_async_calls[msg.asyncCallId].reject(msg.data.error);
+    } else {
+      g_async_calls[msg.asyncCallId].resolve(msg.data); 
     }
+
+    delete g_async_calls[msg.asyncCallId];
     return;
   }
 
-  // Handle promises
-  if (msg.data.error) {
-    g_async_calls[msg.asyncCallId].reject(msg.data.error);
-  } else {
-    g_async_calls[msg.asyncCallId].resolve(msg.data); 
-    exports.isPlaying = g_async_calls[msg.asyncCallId].type === 'play';
+  // Handle events
+  for (var id in g_listeners) {
+    if (g_listeners[id]['eventName'] === msg.eventName) {
+      var event = null;
+      if (msg.eventName == 'deviceready') {
+        event = new ARDroneDeviceReadyEvent();
+      } else if (msg.eventName == 'newvideoready') {
+        event = new ARDroneNewVideoEvent(msg.data);
+      }
+      g_listeners[id]['callback'](event);
+    }
   }
-
-  delete g_async_calls[msg.asyncCallId];
 });
 
 exports.addEventListener = function(eventName, callback) {
-  if (eventName != 'newvideoready') {
-    console.log('Unsupportted event: ' + eventName);
+  if (eventName == 'deviceready' ||
+      eventName == 'newvideoready') {
+    var listener = {
+      'eventName': eventName,
+      'callback': callback
+    };
+
+    var listener_id = g_next_listener_id;
+    g_next_listener_id += 1;
+    g_listeners[listener_id] = listener;
     return;
   }
 
-  var listener = {
-    'eventName': eventName,
-    'callback': callback
-  };
-
-  var listener_id = g_next_listener_id;
-  g_next_listener_id += 1;
-  g_listeners[listener_id] = listener;
+  console.log('Unsupportted event: ' + eventName);
 };
 
 function _AsyncCall(type, resolve, reject) {

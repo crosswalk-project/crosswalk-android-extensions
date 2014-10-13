@@ -28,23 +28,33 @@ dictionary ARDroneVideoOption {
 interface ARDroneVideo : EventTarget {
     // Attributes
     attribute ARDroneVideoOption option;
-    readonly attribute boolean isPlaying;
+    readonly attribute boolean initialized;
 
     // Methods
-    Promise play(DOMString idOfCanvas, optional ARDroneVideoOption option);
+    Promise init(ARDroneVideoOption option);
+    Promise play(DOMString idOfCanvas);
     Promise stop();
     Promise removeFile(DOMString path);
 
     // Events
+    attribute EventHandler ondeviceready;
     attribute EventHandler onnewvideoready;
 };
 
-dictionary ARDroneVideoEventInit : EventInit {
+dictionary ARDroneDeviceReadyEventInit : EventInit {
+};
+
+[
+    Constructor(DOMString type, optional ARDroneDeviceReadyEventInit eventInitDict)
+] interface ARDroneDeviceReadyEvent : Event {
+};
+
+dictionary ARDroneNewVideoEventInit : EventInit {
     readonly attribute DOMString absolutePath;
 };
 
 [
-    Constructor(DOMString type, optional ARDroneVideoEventInit eventInitDict)
-] interface ARDroneVideoEvent : Event {
-    readonly attribute DOMString videoFile;
+    Constructor(DOMString type, optional ARDroneNewVideoEventInit eventInitDict)
+] interface ARDroneNewVideoEvent : Event {
+    readonly attribute DOMString absolutePath;
 };
