@@ -15,39 +15,17 @@ import java.net.DatagramSocket;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class ARDrone extends XWalkExtensionClient {
-    private static final String TAG = "ARDrone";
+public class ARDronePilot extends XWalkExtensionClient {
+    private static final String TAG = "ARDronePilot";
 
     private ATCommandManager mATCommandManager;
     private ATCommandQueue mCommandQueue;
-    private String mRemoteAddress;
     private RunnableWithLock mKeepAliveRunnable;
     private Thread mCommandThread;
     private Thread mKeepAliveThread;
 
-    public ARDrone(String name, String jsApiContent, XWalkExtensionContextClient xwalkContext) {
+    public ARDronePilot(String name, String jsApiContent, XWalkExtensionContextClient xwalkContext) {
         super(name, jsApiContent, xwalkContext);
-        mRemoteAddress = "192.168.1.1";
-        mCommandQueue = new ATCommandQueue(10);
-        mATCommandManager = new ATCommandManager(mCommandQueue, mRemoteAddress);
-        mKeepAliveRunnable = new RunnableWithLock() {
-            @Override
-            public void run() {
-                while (true) {
-                    if (mCommandThread != null) {
-                        mCommandQueue.add(new ATCommand(new ComwdgCommand()));
-                    }
-
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        Log.i(TAG, "KeepAliveThread interruptted!!!");
-                        break;
-                    }
-                    paused();
-                }
-            }
-        };
         mCommandThread = null;
         mKeepAliveThread = null;
     }
@@ -56,19 +34,10 @@ public class ARDrone extends XWalkExtensionClient {
         try {
             JSONObject jsonInput = new JSONObject(message);
             String cmd = jsonInput.getString("cmd");
-            String asyncCallId = jsonInput.getString("asyncCallId");
-            handle(instanceID, asyncCallId, cmd);
-        } catch (JSONException e) {
-            printErrorMessage(e);
-        }
-    }
 
-    private void handle(int instanceID, String asyncCallId, String cmd) {
-        try {
             JSONObject jsonOutput = new JSONObject();
-
             if (cmd.equals("connect")) {
-                jsonOutput.put("data", connect());
+                jsonOutput.put("data", connect(jsonInput.getString("ipAddress")));
             } else if (cmd.equals("quit")) {
                 jsonOutput.put("data", quit());
             } else if (cmd.equals("ftrim")) {
@@ -93,14 +62,35 @@ public class ARDrone extends XWalkExtensionClient {
                 jsonOutput.put("data", yaw_minus());
             }
 
-            jsonOutput.put("asyncCallId", asyncCallId);
+            jsonOutput.put("asyncCallId", jsonInput.getString("asyncCallId"));
             postMessage(instanceID, jsonOutput.toString());
         } catch (JSONException e) {
             printErrorMessage(e);
         }
     }
 
-    private JSONObject connect() {
+    private JSONObject connect(String ipAddress) {
+        mCommandQueue = new ATCommandQueue(10);
+        mATCommandManager = new ATCommandManager(mCommandQueue, ipAddress);
+        mKeepAliveRunnable = new RunnableWithLock() {
+            @Override
+            public void run() {
+                while (true) {
+                    if (mCommandThread != null) {
+                        mCommandQueue.add(new ATCommand(new ComwdgCommand()));
+                    }
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        Log.i(TAG, "KeepAliveThread interruptted!!!");
+                        break;
+                    }
+                    paused();
+                }
+            }
+        };
+
         if (mCommandThread != null) {
             return setOneJSONObject("connect", "true");
         }
@@ -124,7 +114,7 @@ public class ARDrone extends XWalkExtensionClient {
         mCommandQueue.add(new ATCommand(new QuitCommand()));
         mCommandThread.interrupt();
         mCommandThread = null;
-        
+
         if (mKeepAliveThread != null) {
             mKeepAliveThread.interrupt();
             mKeepAliveThread = null;
@@ -159,7 +149,7 @@ public class ARDrone extends XWalkExtensionClient {
         }
 
         mCommandQueue.add(new ATCommand(new LandingCommand()));
-        
+
         return setOneJSONObject("landing", "true");
     }
 

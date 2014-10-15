@@ -23,9 +23,10 @@ function createPromise(msg) {
   return promise;
 }
 
-exports.connect = function() {
+exports.connect = function(ipAddress) {
   var msg = {
-    'cmd': 'connect'
+    'cmd': 'connect',
+    'ipAddress': ipAddress
   };
   return createPromise(msg);
 };
