@@ -27,8 +27,8 @@ public class ATCommand implements Comparable<ATCommand> {
      *      7. FTRIM -- new ATCommand(new FtrimCommand());
      *      8. LED -- new ATCommand(new LedCommand(INT_ANIMATION, FLOAT_FREQUENCY, INT_DURATION));
      *      9. COMWDG -- new ATCommand(new ComwdgCommand());
-     *      10. PCWD_HOVER -- new ATCommand(new HoverCommand());
-     *      11. PCWD_MOVE -- new ATCommand(new MoveCommand(BOOL_YAW_ENABLE, FLOAT_LEFTRIHTTILT,
+     *      10. PCMD_HOVER -- new ATCommand(new HoverCommand());
+     *      11. PCMD_MOVE -- new ATCommand(new MoveCommand(BOOL_YAW_ENABLE, FLOAT_LEFTRIHTTILT,
      *                                     FLOAT_FRONTBACKTILT, FLOAT_VERTICALSPEED, FLOAT_ANGULARSPEED));
      *      12. QUIT -- new ATCommand(new QuitCommand());
      *
@@ -278,7 +278,7 @@ class ComwdgCommand extends BaseCommand {
     }
 }
 
-class PcwdCommand extends BaseCommand {
+class PcmdCommand extends BaseCommand {
     boolean mCombinedYawEnable;
     boolean mHover;
 
@@ -287,8 +287,8 @@ class PcwdCommand extends BaseCommand {
     float mLeftRrightTilt;
     float mVerticalSpeed;
 
-    PcwdCommand(boolean hover) {
-        super("PCWD");
+    PcmdCommand(boolean hover) {
+        super("PCMD");
         mHover = hover;
     }
 
@@ -308,13 +308,13 @@ class PcwdCommand extends BaseCommand {
     }
 }
 
-class HoverCommand extends PcwdCommand {
+class HoverCommand extends PcmdCommand {
     HoverCommand() {
         super(true);
     }
 }
 
-class MoveCommand extends PcwdCommand {
+class MoveCommand extends PcmdCommand {
     MoveCommand(boolean combinedYawEnable, float leftRightTilt, float frontBackTilt,
             float verticalSpeed, float angularSpeed) {
         super(false);

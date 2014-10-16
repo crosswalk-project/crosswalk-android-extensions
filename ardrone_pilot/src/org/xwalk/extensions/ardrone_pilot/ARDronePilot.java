@@ -168,7 +168,7 @@ public class ARDronePilot extends XWalkExtensionClient {
             return setOneJSONObject("status", "not connected");
         }
 
-        mCommandQueue.add(new ATCommand(new MoveCommand(false, 0.5f, 0f, 0f, 0f)));
+        mCommandQueue.add(new ATCommand(new MoveCommand(false, 0.25f, 0f, 0f, 0f)));
 
         return setOneJSONObject("pitch_plus", "true");
     }
@@ -178,7 +178,7 @@ public class ARDronePilot extends XWalkExtensionClient {
             return setOneJSONObject("status", "not connected");
         }
 
-        mCommandQueue.add(new ATCommand(new MoveCommand(false, -0.5f, 0f, 0f, 0f)));
+        mCommandQueue.add(new ATCommand(new MoveCommand(false, -0.25f, 0f, 0f, 0f)));
 
         return setOneJSONObject("pitch_minus", "true");
     }
@@ -188,7 +188,7 @@ public class ARDronePilot extends XWalkExtensionClient {
             return setOneJSONObject("status", "not connected");
         }
 
-        mCommandQueue.add(new ATCommand(new MoveCommand(false, 0f, 0.5f, 0f, 0f)));
+        mCommandQueue.add(new ATCommand(new MoveCommand(false, 0f, 0.25f, 0f, 0f)));
 
         return setOneJSONObject("roll_plus", "true");
     }
@@ -198,7 +198,7 @@ public class ARDronePilot extends XWalkExtensionClient {
             return setOneJSONObject("status", "not connected");
         }
 
-        mCommandQueue.add(new ATCommand(new MoveCommand(false, 0f, -0.5f, 0f, 0f)));
+        mCommandQueue.add(new ATCommand(new MoveCommand(false, 0f, -0.25f, 0f, 0f)));
 
         return setOneJSONObject("roll_minus", "true");
     }
@@ -208,7 +208,7 @@ public class ARDronePilot extends XWalkExtensionClient {
             return setOneJSONObject("status", "not connected");
         }
 
-        mCommandQueue.add(new ATCommand(new MoveCommand(false, 0f, 0f, 0f, 0.5f)));
+        mCommandQueue.add(new ATCommand(new MoveCommand(false, 0f, 0f, 0f, 0.25f)));
 
         return setOneJSONObject("yaw_plus", "true");
     }
@@ -218,7 +218,7 @@ public class ARDronePilot extends XWalkExtensionClient {
             return setOneJSONObject("status", "not connected");
         }
 
-        mCommandQueue.add(new ATCommand(new MoveCommand(false, 0f, 0f, 0f, -0.5f)));
+        mCommandQueue.add(new ATCommand(new MoveCommand(false, 0f, 0f, 0f, -0.25f)));
 
         return setOneJSONObject("yaw_minus", "true");
     }

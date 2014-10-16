@@ -1,0 +1,22 @@
+{
+  "name": "xwalk_ardrone_pilot_demo_app",
+  "xwalk_description": "Crosswalk based app for ARDrone Pilot",
+  "xwalk_version": "0.0.0.1",
+  "start_url": "index.html",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "96x96"
+    }
+  ],
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "xwalk_permissions": [
+    "Fullscreen",
+    "ScreenOrientation"
+  ],
+  "xwalk_hosts": [
+    "http://*"
+  ]
+}
