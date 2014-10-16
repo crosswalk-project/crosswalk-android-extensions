@@ -17,4 +17,8 @@ interface idl_demo : EventTarget {
 
   // Test EventHandler: supports addEventHandler, removeEventHandler, and on...event()
   attribute EventHandler ondemoevent;
+
+  // Test Attribute
+  attribute unsigned long attrWritable;
+  readonly attribute DOMString attrReadOnly;
 };

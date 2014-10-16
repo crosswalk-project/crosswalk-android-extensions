@@ -20,6 +20,7 @@
 <textarea cols=100 rows=40 id="result"></textarea>
 
 <script>
+// Test Event Handler
 function onDemoEvent(event) {
   var output = document.getElementById("result");
   if (typeof event.msg === 'undefined' ||
@@ -41,17 +42,31 @@ window.onload = function() {
     console.log(error);
   }
 
+  // Test Event Handler
   idl_demo.addEventListener('demoevent', onDemoEvent);
 
+  // Test Method
   idl_demo.hi("Hello World!").then(function(result) {
     var output = document.getElementById("result");
     output.value += "hi(): " + result + '\n';
+
+    // Test attribute getter
+    output.value += "Test getting attrWritable:\n expecting '29', gets: " + idl_demo.attrWritable + '\n';
+    output.value += "Test getting attrReadOnly:\n expecting 'hello', gets: " + idl_demo.attrReadOnly + '\n';
+
+    // Test self-defined JS
+    idl_demo.calculate(3, 6).then(function(result) {
+      var output = document.getElementById("result");
+      output.value += "calculate() result: (3+6)*2 = " + result + '\n';
+
+      // Test attribute setter
+      idl_demo.setProperty("attrWritable", 35);
+      idl_demo.setProperty("attrReadOnly", "Set by JS");
+      output.value += "Testing writting attrWritable:\n expecting '35', gets: " + idl_demo.attrWritable + '\n';
+      output.value += "Testing writting attrReadOnly:\n expecting 'hello', gets: " + idl_demo.attrReadOnly + '\n';
+    }, errorCallBack);
   }, errorCallBack);
 
-  idl_demo.calculate(3, 6).then(function(result) {
-    var output = document.getElementById("result");
-    output.value += "calculate() result: (3+6)*2 = " + result + '\n';
-  }, errorCallBack);
 }
 </script>
 

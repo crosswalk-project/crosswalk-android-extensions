@@ -24,6 +24,8 @@ public class idl_demo_impl {
     // 2. Add string to input string and return back to JS
     public JSONObject onHi(JSONObject input) {
         testEventHandler();
+        testSetProperty();
+        testGetProperty();
         try {
             JSONObject o = new JSONObject();
             o.put("data", "Hi from Java - you said: " + input.getString("words"));
@@ -59,5 +61,22 @@ public class idl_demo_impl {
         } catch (JSONException e) {
             Log.e(TAG, e.toString());
         }
+    }
+
+    // Test set property
+    private void testSetProperty() {
+        mBase.setAttrwritable(29);
+        mBase.setAttrreadonly("Hello");
+    }
+
+    // Test get property
+    private void testGetProperty() {
+        long attrWritable = mBase.getAttrwritable();
+        if (attrWritable != 29)
+          Log.e(TAG, "Error on attribute test: expecting (29) gets (" + attrWritable + ")");
+
+        String attrReadOnly = mBase.getAttrreadonly();
+        if (attrReadOnly != "Hello")
+          Log.e(TAG, "Error on attribute test: expecting (Hello) gets (" + attrWritable + ")");
     }
 }

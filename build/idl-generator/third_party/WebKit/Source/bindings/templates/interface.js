@@ -37,7 +37,7 @@ function AsyncCall(resolve, reject) {
   this.reject = reject;
 }
 
-function createPromise(msg) {
+function _createPromise(msg) {
   var promise = new Promise(function(resolve, reject) {
     g_async_calls[g_next_async_call_id] = new AsyncCall(resolve, reject);
   });
@@ -63,14 +63,57 @@ function _addConstructorProperty(obj, constructor) {
 }
 
 function _addConstPropertyFromObject(obj, propertyKey, propObject) {
-  if (propObject.hasOwnProperty(propertyKey)) {
-    Object.defineProperty(obj, propertyKey, {
-      configurable: true,
-      writable: false,
-      value: propObject[propertyKey]
-    });
-  }
+  if (typeof propObject === 'undefined' || !propObject.hasOwnProperty(propertyKey))
+    return;
+  Object.defineProperty(obj, propertyKey, {
+    configurable: true,
+    writable: false,
+    value: propObject[propertyKey]
+  });
 }
+
+function _setConstProperty(obj, propertyKey, newValue) {
+  Object.defineProperty(obj, propertyKey, {
+    configurable: true,
+    writable: true,
+  });
+  obj[propertyKey] = newValue;
+  Object.defineProperty(obj, propertyKey, {
+    configurable: true,
+    writable: false,
+  });
+}
+
+function _setPropertyForNative(obj, propertyKey, newValue) {
+  console.log("hdq in _setPropertyForNative: "+propertyKey);
+  obj[propertyKey] = newValue;
+  var msg = {
+    'cmd': 'js_set_' + propertyKey,
+    'data': newValue
+  };
+  _sendSyncMessage(msg);
+}
+
+function _setConstPropertyForNative(obj, propertyKey, newValue) {
+  Object.defineProperty(obj, propertyKey, {
+    configurable: true,
+    writable: true,
+  });
+  obj[propertyKey] = newValue;
+  var msg = {
+    'cmd': 'set' + propertyKey,
+    'data': newValue
+  };
+  _sendSyncMessage(msg);
+  Object.defineProperty(obj, propertyKey, {
+    configurable: true,
+    writable: false,
+  });
+}
+
+function _sendSyncMessage(msg) {
+    return extension.internal.sendSyncMessage(JSON.stringify(msg));
+};
 
 function derive(child, parent) {
   child.prototype = Object.create(parent.prototype);
@@ -150,7 +193,7 @@ function isValidType(type) {
   };
 {# TODO(hdq) Only return Promise for function defined with Promise:
              if method.idl_type == 'Promise' #}
-  return createPromise(msg);
+  return _createPromise(msg);
 };
 {% endfor %}
 
@@ -176,6 +219,16 @@ extension.setMessageListener(function(json) {
       }
 {{handle_cmd_end(event)}}
 {% endfor %}
+{##}
+{% for attribute in attributes if attribute.idl_type != 'EventHandler' %}
+    case 'set_{{attribute.name}}':
+    {% if attribute.is_read_only == True %}
+      _setConstProperty({{g_manager}}, '{{attribute.name}}', msg.data);
+    {% else %}
+      {{g_manager}}['{{attribute.name}}'] = msg.data;
+    {% endif %}
+      break;
+{% endfor %}
     case 'asyncCallError':
       handleAsyncCallError(msg);
       break;
@@ -183,6 +236,15 @@ extension.setMessageListener(function(json) {
       break;
   }
 });
+
+{{manager.prototype}}.setProperty = function(propertyKey, value) {
+  try {
+    {{g_manager}}[propertyKey] = value;
+    _setPropertyForNative({{g_manager}}, propertyKey, value);
+  } catch(e) { // If the property is readonly will throw a TypeError
+    console.log(e);
+  }
+}
 
 function handleAsyncCallError(msg) {
   if (typeof msg.asyncCallId === 'undefined')
