@@ -26,7 +26,7 @@ function onDemoEvent(event) {
       typeof event.msg.data === 'undefined') {
     output.value += 'Not expected, received: ' + JSON.stringify(event) + '\n';
   } else {
-    output.value += event.msg.data + '\n';
+    output.value += 'onDemoEvent(): ' + event.msg.data + '\n';
   }
 }
 
@@ -45,7 +45,12 @@ window.onload = function() {
 
   idl_demo.hi("Hello World!").then(function(result) {
     var output = document.getElementById("result");
-    output.value += result + '\n';
+    output.value += "hi(): " + result + '\n';
+  }, errorCallBack);
+
+  idl_demo.calculate(3, 6).then(function(result) {
+    var output = document.getElementById("result");
+    output.value += "calculate() result: (3+6)*2 = " + result + '\n';
   }, errorCallBack);
 }
 </script>

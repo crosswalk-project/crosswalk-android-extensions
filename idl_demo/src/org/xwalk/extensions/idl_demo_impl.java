@@ -20,6 +20,8 @@ public class idl_demo_impl {
         return null;
     }
 
+    // 1. Test event handler
+    // 2. Add string to input string and return back to JS
     public JSONObject onHi(JSONObject input) {
         testEventHandler();
         try {
@@ -32,6 +34,21 @@ public class idl_demo_impl {
         }
     }
 
+    // Return a + b
+    public JSONObject onCalculate(JSONObject input) {
+        try {
+            JSONObject o = new JSONObject();
+            long a = input.getLong("a");
+            long b = input.getLong("b");
+            o.put("sum", a + b);
+            return o;
+        } catch (JSONException e) {
+            Log.e(TAG, e.toString());
+            return null;
+        }
+    }
+
+    // Broadcast event to JS
     private static final String CMD_DEMOEVENT = "demoevent";
     private void testEventHandler() {
         try {

@@ -12,6 +12,8 @@
    instead of 'handleContactsChange()' #}
       } else if (typeof msg.asyncCallId !== 'undefined') {
         g_async_calls[msg.asyncCallId].resolve(msg.data);
+      }
+      if (typeof msg.asyncCallId !== 'undefined') {
         delete g_async_calls[msg.asyncCallId];
       }
       break;
@@ -138,10 +140,6 @@ function isValidType(type) {
   return handled;
 };
 
-{# TODO(hdq)
-1. support self-defined function:
-   if not method.is_custom (is_custom = 'Custom' in extended_attributes)
-2. Find a way to insert developer's specific code in here #}
 {% for method in methods %}
 {{manager.prototype}}.{{method.name}} = function({{method.argument_list}}) {
   var msg = {
