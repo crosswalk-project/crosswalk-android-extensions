@@ -8,7 +8,6 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.Date;
 
 public class P264Decoder {
@@ -35,14 +34,14 @@ public class P264Decoder {
             mStartFrame = frame.getPayload().clone();
             result = mStartFrame.clone();
         } else {
-            result = appendData(mStartFrame, frame.getPayload().clone());
+            result = P264Frame.appendData(mStartFrame, frame.getPayload().clone());
         }
 
         // Appending P-Frames until meet next IDR-Frame
         while (true) {
             frame.getNextH264RawFrame(inputStream);
             if (!frame.isStartFrame()) {
-                result = appendData(result, frame.getPayload().clone());
+                result = P264Frame.appendData(result, frame.getPayload().clone());
                 continue;
             }
 
@@ -63,16 +62,4 @@ public class P264Decoder {
         return result;
     }
 
-    protected byte[] appendData(byte[] arr1,byte[] arr2) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try {
-            if (arr1 != null && arr1.length != 0)
-                outputStream.write(arr1);
-            if (arr2 != null && arr2.length != 0)   
-                outputStream.write(arr2);
-        } catch (IOException e) {
-            Log.e(TAG, e.toString());
-        }
-        return outputStream.toByteArray();
-    }
 }
