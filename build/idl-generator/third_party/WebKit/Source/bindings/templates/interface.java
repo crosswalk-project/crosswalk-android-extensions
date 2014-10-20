@@ -23,6 +23,55 @@ public class {{interface_name}} extends XWalkExtensionClient {
     private static final String CMD_{{method.name|upper}} = "{{method.name}}";
 {% endfor %}
 
+{% for attribute in attributes if attribute.idl_type != 'EventHandler' %}
+{# http://www.w3.org/TR/WebIDL/#dfn-numeric-type #}
+{% if attribute.idl_type == 'float' %}
+{% set type = 'double' %}
+{% elif attribute.idl_type == 'double' %}
+{% set type = 'double' %}
+{# http://www.w3.org/TR/WebIDL/#dfn-primitive-type #}
+{% elif attribute.idl_type == 'boolean' %}
+{% set type = 'boolean' %}
+{# http://www.w3.org/TR/WebIDL/#dfn-integer-type #}
+{% elif attribute.idl_type == 'short' %}
+{% set type = 'int' %}
+{% elif attribute.idl_type == 'long' %}
+{% set type = 'long' %}
+{% elif attribute.idl_type == 'unsigned long' %}
+{% set type = 'long' %}
+{% elif attribute.idl_type == 'long long' %}
+{% set type = 'long' %}
+{% elif attribute.idl_type == 'unsigned long long' %}
+{% set type = 'long' %}
+{# http://heycam.github.io/webidl/#idl-types #}
+{% elif attribute.idl_type == 'DOMString' %}
+{% set type = 'String' %}
+{% else %} {# TODO(hdq) add more types support #}
+{% set type = 'String' %}
+{% endif %}
+
+    private static final String CMD_JS_SET_{{attribute.name|upper}} = "js_set_{{attribute.name}}";
+    private {{type}} m_{{attribute.name}};
+    void set{{attribute.name|capitalize}}({{type}} propertyValue) {
+        m_{{attribute.name}} = propertyValue;
+        setPropertyFromNative("{{attribute.name}}", propertyValue);
+    }
+    {{type}} get{{attribute.name|capitalize}}() {
+        return m_{{attribute.name}};
+    }
+{% endfor %}
+
+    private <T> void setPropertyFromNative(String propertyName, T propertyValue) {
+        try {
+            JSONObject jsonOutput = new JSONObject();
+            jsonOutput.put("cmd", "set_" + propertyName);
+            jsonOutput.put("data", propertyValue);
+            this.broadcastMessage(jsonOutput.toString());
+        } catch (JSONException e) {
+            Log.e(TAG, e.toString());
+        }
+    }
+
     private final {{interface_name}}_impl mImpl;
 
     public {{interface_name}}(String name, String JsApiContent, XWalkExtensionContextClient context) {
@@ -42,6 +91,48 @@ public class {{interface_name}} extends XWalkExtensionClient {
 {% for method in methods %}
             else if (cmd.equals(CMD_{{method.name|upper}})) {
                 jsonOutput = mImpl.on{{method.name|capitalize}}(jsonInput);
+            }
+{% endfor %}
+{% for attribute in attributes if attribute.idl_type != 'EventHandler' %}
+{# TODO(hdq) use macro or parent template to avoid code duplication #}
+{# http://www.w3.org/TR/WebIDL/#dfn-numeric-type #}
+{% if attribute.idl_type == 'float' %}
+{% set type = 'double' %}
+{% elif attribute.idl_type == 'double' %}
+{% set type = 'double' %}
+{# http://www.w3.org/TR/WebIDL/#dfn-primitive-type #}
+{% elif attribute.idl_type == 'boolean' %}
+{% set type = 'boolean' %}
+{# http://www.w3.org/TR/WebIDL/#dfn-integer-type #}
+{% elif attribute.idl_type == 'short' %}
+{% set type = 'int' %}
+{% elif attribute.idl_type == 'long' %}
+{% set type = 'long' %}
+{% elif attribute.idl_type == 'unsigned long' %}
+{% set type = 'long' %}
+{% elif attribute.idl_type == 'long long' %}
+{% set type = 'long' %}
+{% elif attribute.idl_type == 'unsigned long long' %}
+{% set type = 'long' %}
+{# http://heycam.github.io/webidl/#idl-types #}
+{% elif attribute.idl_type == 'DOMString' %}
+{% set type = 'String' %}
+{% else %} {# TODO(hdq) add more types support #}
+{% set type = 'String' %}
+{% endif %}
+            else if (cmd.equals(CMD_JS_SET_{{attribute.name|upper}})) {
+              {% if type == double %}
+                set{{attribute.name|capitalize}}(jsonInput.getDouble("data"));
+              {% elif type == boolean %}
+                set{{attribute.name|capitalize}}(jsonInput.getBoolean("data"));
+              {% elif type == int %}
+                set{{attribute.name|capitalize}}(jsonInput.getInt("data"));
+              {% elif type == long %}
+                set{{attribute.name|capitalize}}(jsonInput.getLong("data"));
+              {% elif type == String %}
+                set{{attribute.name|capitalize}}(jsonInput.getString("data"));
+              {% endif %}
+                return;
             }
 {% endfor %}
             else {
