@@ -1,0 +1,6 @@
+{
+  "name":    "xwalk.experimental.ad",
+  "class":   "org.xwalk.extensions.ad.Advertising",
+  "jsapi":   "ad.js",
+  "manifest": "AndroidManifest.xml"
+}

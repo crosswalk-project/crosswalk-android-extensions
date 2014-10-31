@@ -12,6 +12,7 @@
       'target_name': 'build_all_android_extensions',
       'type': 'none',
       'dependencies': [
+        'ad/ad.gyp:*',
         'ardrone_pilot/ardrone_pilot.gyp:*',
         'ardrone_video/ardrone_video.gyp:*',
         'iap/iap.gyp:*',
