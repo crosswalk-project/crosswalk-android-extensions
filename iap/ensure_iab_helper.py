@@ -33,7 +33,9 @@ Will generate following dir structure:
   out/Default/gen/iap/build  # output_dir
     +-- marketbilling        # repo_dir
     +-- src                  # src_dir
-         +-- iap.java
+         +-- InAppPurchaseExtension.java
+         +-- InAppPurchaseGoogleHelper.java
+         +-- InAppPurchaseHelper.java
          +-- util            # patched iab helper utils
         
 iab helper repo from Google:
@@ -65,7 +67,10 @@ def main():
   output_dir = os.path.join(root_dir, options.output)
   src_dir = EnsureAndEnterIABRepo(output_dir, 'marketbilling')
 
-  #TODO(hdq): use depot_tools util to patch multiple files when it's ready
+  # Here we apply this patch in order to acheive the goals:
+  # 1. Expose the private methods to be public, so we can call them in extension.
+  # 2. Get the de-serialized json object directly from SkuDetails to avoid
+  #    getting the object through different properties.
   os.system('git am < %s/iab_helper.patch --quiet' % root_dir)
 
   util_src = os.path.join('v3', 'src', 'com', 'example',
@@ -79,7 +84,11 @@ def main():
   shutil.copy(os.path.join('v3', 'src', '%s' % aidl),
               os.path.join(output_dir, aidl))
   shutil.copy(os.path.join(root_dir, 'src', 'org', 'xwalk', 'extensions',
-                           'iap.java'), src_dir)
+                           'InAppPurchaseExtension.java'), src_dir)
+  shutil.copy(os.path.join(root_dir, 'src', 'org', 'xwalk', 'extensions',
+                           'InAppPurchaseGoogleHelper.java'), src_dir)
+  shutil.copy(os.path.join(root_dir, 'src', 'org', 'xwalk', 'extensions',
+                           'InAppPurchaseHelper.java'), src_dir)
   return 0
 
 

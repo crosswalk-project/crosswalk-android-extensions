@@ -14,7 +14,9 @@
     'build_dir': '<(build_dir)',
     'aidl_gen_file': '<(build_dir)/com/android/vending/billing/IInAppBillingService.aidl',
     'iap_gen_sources_list': [
-      '<(build_dir)/src/iap.java',
+      '<(build_dir)/src/InAppPurchaseExtension.java',
+      '<(build_dir)/src/InAppPurchaseGoogleHelper.java',
+      '<(build_dir)/src/InAppPurchaseHelper.java',
       '<(build_dir)/src/util/Base64.java',
       '<(build_dir)/src/util/Base64DecoderException.java',
       '<(build_dir)/src/util/IabException.java',
@@ -37,7 +39,7 @@
         'js_file': '<(DEPTH)/iap/iap.js',
         'json_file': '<(DEPTH)/iap/iap.json',
         'input_jars_paths': [
-          '<(app_runtime_java_jar)',
+          '<(core_library_java_jar)',
           '<(android_jar)',
         ],
       },
@@ -69,8 +71,10 @@
           'inputs': [
             'ensure_iab_helper.py',
             'iab_helper.patch',
-            'src/org/xwalk/extensions/iap.java',
             'IInAppBillingServiceInterface.aidl',
+            'src/org/xwalk/extensions/InAppPurchaseExtension.java',
+            'src/org/xwalk/extensions/InAppPurchaseGoogleHelper.java',
+            'src/org/xwalk/extensions/InAppPurchaseHelper.java',
           ],
           'outputs': [
             '<(aidl_gen_file)',
