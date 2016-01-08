@@ -36,6 +36,7 @@ Will generate following dir structure:
          +-- InAppPurchaseExtension.java
          +-- InAppPurchaseGoogleHelper.java
          +-- InAppPurchaseHelper.java
+         +-- InAppPurchaseXiaoMiHelper.java
          +-- util            # patched iab helper utils
         
 iab helper repo from Google:
@@ -89,6 +90,8 @@ def main():
                            'InAppPurchaseGoogleHelper.java'), src_dir)
   shutil.copy(os.path.join(root_dir, 'src', 'org', 'xwalk', 'extensions',
                            'InAppPurchaseHelper.java'), src_dir)
+  shutil.copy(os.path.join(root_dir, 'src', 'org', 'xwalk', 'extensions',
+                           'InAppPurchaseXiaoMiHelper.java'), src_dir)
   return 0
 
 
