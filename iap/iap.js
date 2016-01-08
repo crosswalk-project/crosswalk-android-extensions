@@ -2,58 +2,111 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-var _promises = {};
-var _next_promise_id = 0;
+var g_asyncRequests = {};
+var g_nextRequestId = 0;
+var g_initialized = false;
 
-var Promise = requireNative('sysapps_promise').Promise;
+exports.__defineGetter__("initialized", function() {
+  return g_initialized;
+});
 
-var _postMessage = function(msg) {
-  var p = new Promise();
+function AsyncRequest(resolve, reject) {
+  this.resolve = resolve;
+  this.reject = reject;
+}
 
-  _promises[_next_promise_id] = p;
-  msg._promise_id = _next_promise_id.toString();
-  _next_promise_id += 1;
+function DOMError(name, message) {
+  this.name = name;
+  this.message = message;
+}
 
-  extension.postMessage(JSON.stringify(msg));
-  return p;
-};
+function createAsyncRequest(resolve, reject) {
+  var requestId = ++g_nextRequestId;
+  var asyncRequest = new AsyncRequest(resolve, reject);
+  g_asyncRequests[requestId] = asyncRequest;
+
+  return requestId;
+}
+
+function sendAsycRequest(command, requestId, message) {
+  var message = { "cmd": command, "requestId": requestId, "data": message };
+  extension.postMessage(JSON.stringify(message));
+}
+
+exports.init = function(options) {
+  return new Promise(function(resolve, reject) {
+    if (g_initialized)
+      throw new DOMError("InvalidStateError");
+    var resolveWrapper = function() {
+      g_initialized = true;
+      resolve();
+    }
+    var requestId = createAsyncRequest(resolveWrapper, reject);
+    sendAsycRequest("init", requestId, options);
+  });
+}
+
+exports.queryProductsInfo = function(productIds) {
+  return new Promise(function(resolve, reject) {
+    if (!g_initialized) {
+      throw new DOMError("InvalidStateError");
+    }
+    var requestId = createAsyncRequest(resolve, reject);
+    sendAsycRequest("queryProductsInfo", requestId, productIds);
+  });
+}
+
+
+exports.purchase = function(order) {
+  return new Promise(function(resolve, reject) {
+    if (!g_initialized) {
+      throw new DOMError("InvalidStateError");
+    }
+    var requestId = createAsyncRequest(resolve, reject);
+    sendAsycRequest("purchase", requestId, order);
+  });
+}
+
+exports.getReceipt = function() {
+  return new Promise(function(resolve, reject) {
+    if (!g_initialized) {
+      throw new DOMError("InvalidStateError");
+    }
+    var requestId = createAsyncRequest(resolve, reject);
+    sendAsycRequest("getReceipt", requestId);
+  });
+}
+
+exports.validateReceipt = function() {
+  return new Promise(function(resolve, reject) {
+    if (!g_initialized) {
+      throw new DOMError("InvalidStateError");
+    }
+    var requestId = createAsyncRequest(resolve, reject);
+    sendAsycRequest("validateReceipt", requestId);
+  });
+}
+
+exports.restore = function() {
+  return new Promise(function(resolve, reject) {
+    if (!g_initialized) {
+      throw new DOMError("InvalidStateError");
+    }
+    var requestId = createAsyncRequest(resolve, reject);
+    sendAsycRequest("restore", requestId);
+  });
+}
 
 extension.setMessageListener(function(json) {
   var msg = JSON.parse(json);
+  var request = g_asyncRequests[msg.requestId];
 
-  if (msg.data && msg.data.error) {
-    _promises[msg._promise_id].reject(msg.data.error);
-  } else {
-    _promises[msg._promise_id].fulfill(msg.data);
+  if (request) {
+    if (msg.error) {
+      request.reject.apply(null, [msg.error]);
+    } else {
+      request.resolve.apply(null, [msg.data]);
+    }
+    delete g_asyncRequests[msg.requestId];
   }
-
-  delete _promises[msg._promise_id];
 });
-
-// [IN] key: a base64 encoded public key that identifies the application
-// This key can be found in the Google Play developer console
-exports.init = function(key) {
-  var msg = {
-    'cmd': 'init',
-    'key': key
-  };
-  return _postMessage(msg);
-}
-
-// [IN] productIds: a list of ids to be queried
-exports.queryProductDetails = function(productIds) {
-  var msg = {
-    'cmd': 'query_products',
-    'ids': JSON.stringify(productIds)
-  };
-  return _postMessage(msg);
-}
-
-// [IN] productId: id of the item which to be purchased
-exports.buy = function(productId) {
-  var msg = {
-    'cmd': 'buy',
-    'id': productId
-  };
-  return _postMessage(msg);
-}
