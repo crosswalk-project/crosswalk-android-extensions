@@ -116,7 +116,7 @@ public class InAppPurchaseExtension extends XWalkExternalExtension {
         if (channel.equals(BACKEND_GOOGLE)) {
             return new InAppPurchaseGoogleHelper(mExtensionContext.getActivity(), instanceId, mHelperListener);
         } else if (channel.equals(BACKEND_XIAOMI)) {
-            // TODO(minggang): add the support of XiaoMi, when it's ready.
+            return new InAppPurchaseXiaoMiHelper(mExtensionContext.getActivity(), instanceId, mHelperListener);
         }
 
         Log.e(TAG, "Unsupported channel: " + channel);

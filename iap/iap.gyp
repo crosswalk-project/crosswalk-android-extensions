@@ -17,6 +17,7 @@
       '<(build_dir)/src/InAppPurchaseExtension.java',
       '<(build_dir)/src/InAppPurchaseGoogleHelper.java',
       '<(build_dir)/src/InAppPurchaseHelper.java',
+      '<(build_dir)/src/InAppPurchaseXiaoMiHelper.java',
       '<(build_dir)/src/util/Base64.java',
       '<(build_dir)/src/util/Base64DecoderException.java',
       '<(build_dir)/src/util/IabException.java',
@@ -41,6 +42,7 @@
         'input_jars_paths': [
           '<(core_library_java_jar)',
           '<(android_jar)',
+          'libs/SDK_TY_4.4.33.jar',
         ],
       },
       'dependencies': [
@@ -75,6 +77,7 @@
             'src/org/xwalk/extensions/InAppPurchaseExtension.java',
             'src/org/xwalk/extensions/InAppPurchaseGoogleHelper.java',
             'src/org/xwalk/extensions/InAppPurchaseHelper.java',
+            'src/org/xwalk/extensions/InAppPurchaseXiaoMiHelper.java',
           ],
           'outputs': [
             '<(aidl_gen_file)',
@@ -84,6 +87,32 @@
             'python', 'ensure_iab_helper.py',
             '--output=<(build_dir)',
           ],
+        },
+      ],
+    },
+    {
+      'target_name': 'pack_iap_jars',
+      'type': 'none',
+      'dependencies': [
+        'iap',
+      ],
+      'actions': [
+        {
+          'action_name': 'combine_jars',
+          'inputs': [
+            '<(DEPTH)/build/ant_combine.xml',
+            'libs/SDK_TY_4.4.33.jar',
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/iap.jar',
+          ],
+          'action': ['ant',
+                     '-f', '<(DEPTH)/build/ant_combine.xml',
+                     'combine_jars',
+                     '-Ddest.dir=<(SHARED_INTERMEDIATE_DIR)/iap',
+                     '-Ddest.file=iap.jar',
+                     '-Dextra.jar.dir=<(DEPTH)/iap/libs',
+                    ],
         },
       ],
     },
