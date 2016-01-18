@@ -1,0 +1,66 @@
+# Copyright (c) 2016 Intel Corporation. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+sudo: false
+
+os:
+- linux
+
+language: android
+
+android:
+  components:
+  - build-tools-22.0.1
+  - android-22
+
+env:
+  matrix:
+  - XWALK_CHANNEL=canary XWALK_VERSION=18.46.466.0
+
+before_install:
+- cd ..
+
+install:
+- git config --global user.email "minggang.wang@intel.com"
+- git config --global user.name "Minggang Wang"
+# Install depot_tools
+- git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git `pwd`/src/third_party/depot_tools
+- export PATH="$PATH":`pwd`/src/third_party/depot_tools
+# Install GYP
+- git clone https://chromium.googlesource.com/external/gyp `pwd`/src/third_party/gyp
+- export PATH="$PATH":`pwd`/src/third_party/gyp
+# Download Crosswalk
+- curl -LO https://download.01.org/crosswalk/releases/crosswalk/android/${XWALK_CHANNEL}/${XWALK_VERSION}/crosswalk-${XWALK_VERSION}.zip
+  && unzip crosswalk-${XWALK_VERSION}.zip && rm crosswalk-${XWALK_VERSION}.zip
+- chmod a+x `pwd`/crosswalk-${XWALK_VERSION}/make_apk.py
+- export PATH="$PATH":`pwd`/crosswalk-${XWALK_VERSION}
+- export PATH="$PATH":/usr/local/android-sdk/build-tools/22.0.1
+- export GYP_GENERATORS='ninja'
+
+before_deploy:
+- zip -j iap.zip out/Default/gen/iap/iap.jar out/Default/gen/iap/iap.js out/Default/gen/iap/iap.json
+
+deploy:
+  provider: releases
+  # This user name will be changed to the one, which doesn't represent as a developer.
+  user: minggang.wang@intel.com
+  api_key:
+    secure: FcDsD//0uWoGWE291MMHMbEiUXpmC5vNmwB93h/3h/bB6TqyWrRoeBdUYuMvLpAzh40otzqQfjrSNo4WhX5jqxIrJTV7DX3GBhvuWigXRjdL7UpfTu8H75LGAa3YMx6EYtJNMzjNUvBXv125oQeEBLMqeD4TpnTL7/dFpEZQnTU=
+  file:
+  - iap.zip
+  skip_cleanup: true
+  on:
+    tags: true
+
+script:
+- cd crosswalk-android-extensions
+- gyp --depth=. all.gyp
+- ninja -C out/Default pack_iap_jars
+
+notifications:
+  email:
+    recipients:
+    - halton.huo@intel.com
+    on_success: always
+    on_failure: always
