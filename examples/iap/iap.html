@@ -1,157 +1,158 @@
-<!DOCTYPE html>
-<html><head></head>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'/>
+        <style>
+            input.iapButton {
+                border:1px solid black;
+                height:30px;
+                width:40%;
+                margin: 5px;
+            }
+            input.iapDiv {
+                text-align:center;
+            }
+        </style>
+        <title>Sample of In-app purchase</title>
+    </head>
 
-<body>
+    <script type='text/javascript'>
+        var noticeApple =  "<div style='color:red'>DO NOT USE REAL APPLE ID TO TEST!!!</div>" +
+                           "<div>Use the following account to run this demo:</div>" +
+                           "<div>User name: tom.wang@gmail.com</div>" +
+                           "<div>Password: Intel@123</div>";
 
-<style type="text/css">
-  body { margin: auto; width: 100%; }
-  .title { margin: 20; padding: 20; font-size: 42; font-weight: bold; text-align: center; }
-  div.centre {
-    background: blue;
-    width: 700px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .fuel,.first,.second,.third,.forth {
-    background: none repeat scroll 0 0;
-    float: left; width: 100px; margin: 1px; height: 20px;
-  }
-  .fuel { width: auto; }
-  .first  { color: red; background: red; }
-  .second { color: #FF8000; background: #FF8000; }
-  .third  { color: green; background: green; }
-  .forth  { color: #00B92F; background: #00B92F; }
-  .btnline { float: left; clear: left; }
-  .btn { font-size: 40; margin: 10px; padding: 10; width: 250px }
-</style>
+        var noticeGoogle = "<div style='color:red'>DO NOT USE REAL GMAIL TO TEST!!!</div>" +
+                           "<div>Use the following account to run this demo:</div>" +
+                           "<div>User name: web.otc.ssg@gmail.com</div>" +
+                           "<div>Password: Intel@123</div>";
 
-<div class="title">test</div>
-<p>
-<div class="centre">
-  <div class="fuel">Fuel:</div>
-  <div id="first" class="first"></div>
-  <div id="second" class="second"></div>
-  <div id="third" class="third"></div>
-  <div id="forth" class="forth"></div>
+        var noticeXiaoMi = "<div>Please use your own XiaoMi ID to purchase and will make a charge.</div>"
 
-  <div class="btnline" style="height: 20px"></div>
-  <div class="btnline">
-    <button id="btnDrive" class="btn">Drive!</button>
-    <button id="btnBuy" class="btn">Buy Gas</button>
-  </div>
-  <!-- TODO(hdq)
-  <div class="btnline">
-    <button id="btnUpgrade" class="btn">Upgrade</button>
-    <button id="btnInfinite" class="btn">Get Infinite Gas</button>
-  </div>
-  -->
-  <div class="btnline">
-    <button id="btnQuery" class="btn">Query Product Details</button>
-  </div>
-  <div class="btnline" id="queryDiv"></div>
-  <div class="btnline" id="resultDiv"></div>
-</div>
+        var queryProducts = [];
 
-<script>
-window.onload = function() {
-  if (typeof window.iap === 'undefined') {
-    document.title = 'Fail';
-    console.log("no IAP support");
-    return;
-  }
+        function query() {
+            navigator.iap.queryProductsInfo(queryProducts).then(function(products) {
+                document.getElementById("result").innerHTML = "";
+                var buttonStyle = "display:inline-block; padding: 5px 20px; border: 1px solid black";
+                var html = "<ul>";
+                for (var i=0; i<products.length; i++) {
+                  html += "<li>" +
+                          "<h3>" + products[i]["title"] + "</h3>" +
+                          "<p>Description: " + products[i]["description"] + "</p>" +
+                          "<p>Price: " + products[i]["price"] + "</p>" +
+                          "<input " +
+                          "id='" + products[i]["productId"] + "' " +
+                          "value='buy " + products[i]["title"] + "' " +
+                          "onclick=purchase('" +  products[i]["productId"] + "') " +
+                          "type='button'>" +
+                          "</input>" +
+                          "</li>";
+                }
+                html += "</ul>";
+                document.getElementById("result").innerHTML = html;
+            });
+        }
 
-  console.log("IAP Test - Will init IAP plugin");
-  var key = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsEVjLWKJ5B7EKjnH5NVx4eh83xntg1WXFIQhLXgtmiCU0Ro27dN8Q7Q5HIif4ugkFcQWFhlDC/WsliDKtLZQkadmS1sUweOanIo5+ZbNaQ1ITWwtkNdnPb+tRJCjhngft1hFIfLGsKrBMxS8slaWaQ537wgex74Pv5mxuQLhsFyei5GffzDQDz4KN6sQHPqtB+GLDWqKKk2bdAiopQRFRUwYR8edAYcHiMHHZSfidOjaYD1/timhFIUnwFihtvNy4K7OStjoy6kEwCmX9/zXS3SxKkOfk2bNg/Edc8xgym8GkfObUliySSNxS9ukzp1ShDuSjdwfJVt5mvmXk+7jiQIDAQAB';
-  iap.init(key);
+        function getReceipt() {
+            navigator.iap.getReceipt().then(function(receipt) {
+                document.getElementById("result").innerHTML = "Receipt: " + receipt;
+            }).catch(function(e) {
+                document.getElementById("result").innerHTML = "Operation failed: " + e.name;
+            });
+        }
 
-  var fuel=4;
+        function validateReceipt() {
+            navigator.iap.validateReceipt().then(function() {
+                document.getElementById("result").innerHTML = "Validation succeeded.";
+            }).catch(function(e) {
+                document.getElementById("result").innerHTML = "Validation failed: " + e.name;
+            });
+        }
 
-  var errorCallBack = function(error) {
-    document.title = 'Fail';
-    console.log(error);
-  }
+        function purchase(productId) {
+            navigator.iap.purchase({"productId": productId, "count": 1, "userInfo": "This is a test."}).then(function(result) {
+                document.getElementById("result").innerHTML = "Purchase succeeded.";
+            }).catch(function(e) {
+                document.getElementById("result").innerHTML = "Purchase failed: " + e.name;
+            });
+        }
 
-  function refresh() {
-    var d1 = document.getElementById("first");
-    var d2 = document.getElementById("second");
-    var d3 = document.getElementById("third");
-    var d4 = document.getElementById("forth");
-    if (fuel<1) d1.style.visibility='hidden';
-    else d1.style.visibility='visible';
-    if (fuel<2) d2.style.visibility='hidden';
-    else d2.style.visibility='visible';
-    if (fuel<3) d3.style.visibility='hidden';
-    else d3.style.visibility='visible';
-    if (fuel<4) d4.style.visibility='hidden';
-    else d4.style.visibility='visible';
-  }
+        function restore() {
+            navigator.iap.restore().then(function(products) {
+                var html = "<p>Products restored:</p>";
+                html += "<ul>";
+                for (var i=0; i<products.length; i++) {
+                  html += "<li>" + products[i] + "</li>";
+                }
+                html += "</ul>";
+                document.getElementById("result").innerHTML = html;
+            }).catch(function(e) {
+                document.getElementById("result").innerHTML = "Restore failed:" + e.name;
+            });
+        }
 
-  var queryProductsCallBack = function(products) {
-    console.log("Products: " + JSON.stringify(products));
-    if (products.length == 0) {
-        document.getElementById("queryDiv").innerHTML = "No product available";
-        return;
-    }
+        function init(channel) {
+            var html = "<div id='iapDiv'>" +
+                            "<input class='iapButton' type='button' value='Query Products' onclick=query() />" +
+                            "<input class='iapButton' type='button' value='Validate Receipt' onclick=validateReceipt() />" +
+                        "</div>" +
+                        "<div class='iapDiv'>" +
+                            "<input class='iapButton' type='button' value='Get Receipt' onclick=getReceipt() />" +
+                            "<input class='iapButton' type='button' value='Restore' onclick=restore() />";
 
-    document.getElementById("queryDiv").innerHTML = "";
-    for (var i=0; i<products.length; i++) {
-      var f1 = "ID: " + products[i]["productId"]+"<br>";
-      var f2 = "Price: " + products[i]["price"]+"<br>";
-      var f3 = "Currency: " + products[i]["price_currency_code"]+"<br>";
-      var f4 = "Title: " + products[i]["title"]+"<br>";
-      var f5 = "Description: " + products[i]["description"]+"<br>----------<br>"
-      document.getElementById("queryDiv").innerHTML += f1+f2+f3+f4+f5;
-    }
-  }
+            if (channel == "XiaoMi") {
+                html += "<input class='iapButton' type='button' value='Purchase com.demo_1' onclick=purchase('com.demo_1') />";
+            }
+            html += "</div>";
 
-  var buyCallBack = function(result) {
-    if (fuel<4) fuel+=1;
-    console.log(fuel);
-    refresh();
+            document.getElementById("select").innerHTML = html;
 
-    console.log("buy returns: "+JSON.stringify(result)); 
-    var orderId = result.orderId;
-    var packageName = result.packageName;
-    var productId = result.productId;
-    var purchaseTime = result.purchaseTime;
-    var purchaseState = result.purchaseState;
+            var notice = "";
+            var options = {};
 
-    var m = new Date(1970,0,1);
-    m.setSeconds(purchaseTime/1000);
-    var dateStringGMT =
-      m.getUTCFullYear() +"/"+
-      ("0" + (m.getUTCMonth()+1)).slice(-2) +"/"+
-      ("0" + m.getUTCDate()).slice(-2) + " " +
-      ("0" + m.getUTCHours()).slice(-2) + ":" +
-      ("0" + m.getUTCMinutes()).slice(-2) + ":" +
-      ("0" + m.getUTCSeconds()).slice(-2);
+            options.channel = channel;
+            options.debug = true;
 
-    document.getElementById("resultDiv").innerHTML += "Buy returned:"
-      + "<br>Order ID: " + orderId
-      + "<br>Package Name: " + packageName
-      + "<br>Product ID: " + productId
-      + "<br>Purchase Time(GMT): " + dateStringGMT
-      + "<br>Purchase State: " + purchaseState;
-  }
+            if (channel == "Google") {
+                options.key = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsS5PnwtdKyYPJUe+Jr/mPtjfmIuP+fLcztR3t9ocRs4UfjsyunclopkM324NOoHGrKkkvcT+MDiP1IM2lSfH1Z39W8zMnZOZtlVSyiEitZVt39JL11A00PBn9zpBT0Zb4dm85bENFlw1B+F3K+QyDCjTJzkj/aG51NSEkXsEipyhUikgIp5HxiC63efpuH9G+Go7EThsdkDwn8yngm4KM6trtko+W/wGPYmk/LbZK2WEKpsGBOfJ3lzBf65+p8U1epd0/2Xf5qwz1dT5HiT6I7Wrh1VSRbGABOfDH4fjZVL5BVpoO9O7t9iyaBorPJbPgKXmx1aj0eG5ivNxtpNkUwIDAQAB";
+                notice = noticeGoogle;
+                queryProducts = ["com.crosswalk.apple", "com.crosswalk.grape"];
+            } else if (channel == "XiaoMi") {
+                notice = noticeXiaoMi;
+                options.key = '5691723970138';
+                options.id = '2882303761517239138';
+            } else if (channel == "Apple") {
+                notice = noticeApple;
+                queryProducts = ["org.xwalktest.iap", "org.xwalktest1.iap",
+                                 "org.xwalktest.cherry", "org.xwalktest.grape",
+                                 "org.xwalktest.peach"];
+            }
 
-  document.getElementById("btnQuery").onclick = function() {
-    console.log("Testing query products");
-    iap.queryProductDetails(["gas", "yearly", "premium"]).then(queryProductsCallBack, errorCallBack);
-  }
+            document.getElementById("notice").innerHTML = notice;
+            navigator.iap.init(options).then(function() {
+                document.getElementById("result").innerHTML += "Intialization succeeded.";
+            }).catch(function(e) {
+                document.getElementById("result").innerHTML += "Intialization failed: " + e.name;
+            });
+        }
+    </script>
 
-  document.getElementById("btnDrive").onclick = function() {
-    console.log("Testing consume(local)");
-    if (fuel) fuel-=1;
-    console.log(fuel);
-    refresh();
-  }
-
-  document.getElementById("btnBuy").onclick = function() {
-    console.log("Testing buy");
-    iap.buy("gas").then(buyCallBack, errorCallBack);
-  }
-}
-</script>
-
-</body></html>
+    <body>
+        <h2>Sample of In-app purchase</h2>
+        <div id="select">
+            <p>Select the store which you want to test.</p>
+            <div align="middle">
+                <input class='iapButton' type='button' value='Apple Store' onclick=init("Apple") />
+            </div>
+            <div align="middle">
+                <input class='iapButton' type='button' value='Google Play' onclick=init("Google") />
+            </div>
+            <div align="middle">
+                <input class='iapButton' type='button' value='XiaoMi Store' onclick=init("XiaoMi") />
+            </div>
+        </div>
+        <div id="notice"></div>
+        <div id="result" style="width:100%; height:100px; word-wrap: break-word; word-break: normal;"></div>
+    </body>
+</html>
