@@ -15,6 +15,7 @@
         'ad/ad.gyp:*',
         'ardrone_pilot/ardrone_pilot.gyp:*',
         'ardrone_video/ardrone_video.gyp:*',
+        'fingerprint/fingerprint.gyp:*',
         'iap/iap.gyp:*',
         'idl_demo/idl_demo.gyp:*',
       ],

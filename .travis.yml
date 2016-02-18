@@ -12,7 +12,7 @@ language: android
 android:
   components:
   - build-tools-22.0.1
-  - android-22
+  - android-23
 
 env:
   matrix:
@@ -40,6 +40,7 @@ install:
 
 before_deploy:
 - zip -j iap.zip out/Default/gen/iap/iap.jar out/Default/gen/iap/iap.js out/Default/gen/iap/iap.json
+- zip -j fingerprint.zip out/Default/gen/fingerprint/fingerprint.jar out/Default/gen/fingerprint/fingerprint.js out/Default/gen/fingerprint/fingerprint.json
 
 deploy:
   provider: releases
@@ -57,6 +58,7 @@ script:
 - cd crosswalk-android-extensions
 - gyp --depth=. all.gyp
 - ninja -C out/Default pack_iap_jars
+- ninja -C out/Default fingerprint
 
 notifications:
   email:
