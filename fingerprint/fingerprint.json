@@ -1,0 +1,5 @@
+{
+  "name":  "xwalk.experimental.fingerprint",
+  "class": "org.xwalk.extensions.FingerprintExtension",
+  "jsapi": "fingerprint.js"
+}
