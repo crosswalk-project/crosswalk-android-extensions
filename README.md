@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/crosswalk-project/crosswalk-android-extensions.svg?branch=master)](https://travis-ci.org/crosswalk-project/crosswalk-android-extensions)
+
 ## Introduction
 This repository includes external extensions written for Crosswalk Android port.
 Fore more details, please refer to https://crosswalk-project.org/#documentation/android_extensions

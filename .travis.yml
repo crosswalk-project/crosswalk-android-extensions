@@ -50,6 +50,7 @@ deploy:
     secure: FcDsD//0uWoGWE291MMHMbEiUXpmC5vNmwB93h/3h/bB6TqyWrRoeBdUYuMvLpAzh40otzqQfjrSNo4WhX5jqxIrJTV7DX3GBhvuWigXRjdL7UpfTu8H75LGAa3YMx6EYtJNMzjNUvBXv125oQeEBLMqeD4TpnTL7/dFpEZQnTU=
   file:
   - iap.zip
+  - fingerprint.zip
   skip_cleanup: true
   on:
     tags: true
