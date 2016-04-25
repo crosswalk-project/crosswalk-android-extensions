@@ -21,7 +21,7 @@ public class InAppPurchaseHelper {
 
     // The names of different errors.
     public static final String OPERATION_ERROR = "OperationError";
-    public static final String NOT_SUPPORTED_ERROR = "NotSupportError";
+    public static final String NOT_SUPPORTED_ERROR = "NotSupportedError";
 
     public InAppPurchaseHelper(Activity activity, int instanceId, InAppPurchaseHelperListener listener) {
         mActivity = activity;
