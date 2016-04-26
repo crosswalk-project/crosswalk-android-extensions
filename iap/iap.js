@@ -37,6 +37,8 @@ exports.init = function(options) {
   return new Promise(function(resolve, reject) {
     if (g_initialized)
       throw new DOMError("InvalidStateError");
+    if (typeof(options.channel) === "undefined")
+      throw new DOMError("InvalidAccessError");
     var resolveWrapper = function() {
       g_initialized = true;
       resolve();
