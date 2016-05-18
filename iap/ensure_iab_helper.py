@@ -50,7 +50,7 @@ def EnsureAndEnterIABRepo(output_dir, repo):
 
   repo_dir = os.path.join(output_dir, repo)
 
-  git_url = 'https://code.google.com/p/%s/' % repo
+  git_url = 'https://github.com/marchbold/marketbilling.git'
   co = GitCheckout(repo_dir, None, 'master', git_url, None)
   co.prepare('ff1c062b22b97c3baee12eae8d65a2adcf396f5f')
 
