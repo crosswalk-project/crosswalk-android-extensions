@@ -64,6 +64,9 @@ exports.purchase = function(order) {
     if (!g_initialized) {
       throw new DOMError("InvalidStateError");
     }
+    if (typeof(order.productId) === "undefined") {
+      throw new DOMError("InvalidAccessError");
+    }
     var requestId = createAsyncRequest(resolve, reject);
     sendAsycRequest("purchase", requestId, order);
   });
