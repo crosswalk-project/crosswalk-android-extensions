@@ -53,6 +53,8 @@ exports.queryProductsInfo = function(productIds) {
     if (!g_initialized) {
       throw new DOMError("InvalidStateError");
     }
+    if (typeof(productIds) === "undefined")
+      throw new DOMError("InvalidAccessError");
     var requestId = createAsyncRequest(resolve, reject);
     sendAsycRequest("queryProductsInfo", requestId, productIds);
   });
