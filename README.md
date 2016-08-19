@@ -2,7 +2,7 @@
 
 ## Introduction
 This repository includes external extensions written for Crosswalk Android port.
-Fore more details, please refer to https://crosswalk-project.org/#documentation/android_extensions
+Fore more details, please refer to https://crosswalk-project.org/documentation/android/android_extensions.html
 
 ## Prerequisites
 1. gyp
